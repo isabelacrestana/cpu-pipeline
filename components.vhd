@@ -9,4 +9,19 @@ PACKAGE components IS
 				Q                  : OUT STD_LOGIC_VECTOR(15 DOWNTO 0));
 	END COMPONENT;	
 	
+	COMPONENT fullAdder 
+		PORT (cin:  IN STD_LOGIC;
+				a, b: IN STD_LOGIC;
+				S:    OUT STD_LOGIC;
+				cout: OUT STD_LOGIC);
+	
+	END COMPONENT;
+	
+	COMPONENT rippleCarry
+		PORT (cin            : IN STD_LOGIC ;
+				a,b            : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
+				S              : OUT STD_LOGIC_VECTOR(15 DOWNTO 0);
+				cout, overflow : OUT STD_LOGIC );
+	END COMPONENT;
+	
 END components;
