@@ -3,7 +3,7 @@ USE ieee.std_logic_1164.all;
 
 ENTITY Control IS 
 	PORT(
-		Opcode: STD_LOGIC_VECTOR(2 DOWNTO 0); -- 3 bits de opcode
+		Opcode: IN STD_LOGIC_VECTOR(2 DOWNTO 0); -- 3 bits de opcode
 		ID_Flush: OUT STD_LOGIC;
 		Control_Signals: OUT STD_LOGIC_VECTOR(7 DOWNTO 0)  -- 7 sinais utilizados. OBS: AluOp usa dois bits, com isso 6 + 2 = 8
 	);
