@@ -38,26 +38,22 @@ BEGIN
 	
 	PROCESS(clocK)
 	BEGIN
+		-- ESCRITA
 		IF RISING_EDGE(clock) THEN
-			-- mux 1 de leitura
-			readData1 <= regsData(TO_INTEGER(UNSIGNED(readRegister1)));	
-			-- mux 2 de leitura
-			readData2 <= regsData(TO_INTEGER(UNSIGNED(readRegister2)));
-		END IF;
-	END PROCESS;
-
-	
-	-- decoder de escrita
-	PROCESS(clock)
-	BEGIN
-		 IF FALLING_EDGE(clock) THEN
-			  -- zera todos os enables
+			-- zera todos os enables
 			  regsIn <= (others => '0');
 			  IF regWrite = '1' THEN
 					regsIn(to_integer(unsigned(writeRegister))) <= '1';
 			  END IF;
+		END IF;
+		
+		-- LEITURA
+		IF FALLING_EDGE(clock) THEN
+				-- mux 1 de leitura
+			readData1 <= regsData(TO_INTEGER(UNSIGNED(readRegister1)));	
+			-- mux 2 de leitura
+			readData2 <= regsData(TO_INTEGER(UNSIGNED(readRegister2)));
 		 END IF;
 	END PROCESS;
-
 
 END behavioral;
