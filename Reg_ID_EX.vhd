@@ -30,7 +30,7 @@ ARCHITECTURE behavior OF Reg_ID_EX IS
 	
 		PROCESS(Clk)
 		  BEGIN
-			IF Clock'EVENT AND Clock='1' THEN
+			IF Clk'EVENT AND Clk='1' THEN
 				EX_OUT <= EX; 
 				M_OUT <= M;
 				WB_OUT <= WB;
