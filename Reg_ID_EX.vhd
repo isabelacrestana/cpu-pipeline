@@ -24,12 +24,12 @@ ENTITY Reg_ID_EX IS
 END Reg_ID_EX;
 
 ARCHITECTURE behavior OF Reg_ID_EX IS
+BEGIN
+	PROCESS(Clk)
 	BEGIN
-		PROCESS(Clk)
-		  BEGIN
-			IF Clk'EVENT AND Clk='1' THEN
-				Q <= D;
-			END IF;
-		  END PROCESS;
+		IF Clk'EVENT AND Clk='1' THEN
+			Q <= D;
+		END IF;
+	END PROCESS;
 		
-	END behavior;
+END behavior;
