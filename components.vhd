@@ -24,4 +24,10 @@ PACKAGE components IS
 				cout, overflow : OUT STD_LOGIC );
 	END COMPONENT;
 	
+	COMPONENT bufferTriState
+		PORT (Data : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
+				Gate : IN STD_LOGIC;
+				Q    : OUT STD_LOGIC_VECTOR(15 DOWNTO 0));
+	END COMPONENT;
+		
 END components;

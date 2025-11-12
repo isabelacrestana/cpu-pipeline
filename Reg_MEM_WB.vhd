@@ -6,7 +6,7 @@ ENTITY Reg_MEM_WB IS
 	PORT(	
 			Clk : IN STD_LOGIC;
 			D   : IN  STD_LOGIC_VECTOR(37 DOWNTO 0);
-			Q   : OUT STD_LOGIC_VECTOR(37 DOWNTO 0);	
+			Q   : OUT STD_LOGIC_VECTOR(37 DOWNTO 0)	
 			
 			-- mapeamento 
 			-- 37 a 36 : WB
