@@ -6,6 +6,7 @@ ENTITY Control IS
 		Opcode: IN STD_LOGIC_VECTOR(2 DOWNTO 0); -- 3 bits de opcode
 		ID_Flush: OUT STD_LOGIC;
 		Control_Signals: OUT STD_LOGIC_VECTOR(8 DOWNTO 0)  -- 8 sinais utilizados. OBS: AluOp usa dois bits, com isso 7 + 2 = 9
+		Jump: OUT STD_LOGIC;
 	);
 END Control;
 
@@ -26,10 +27,12 @@ ARCHITECTURE behavior OF Control IS
 				ALUOp   <= "00";  --EX
 				RegDst  <= '0';  --EX
 				ID_Flush <= '0';
+				Jump <= '0';
 				
 			CASE Opcode IS
 				WHEN "000" =>  --NOP
-					ID_Flush <= '1'; -- ZERA OS SINAIS DE CONTROLE 
+					ID_Flush <= '1'; -- ZERA OS SINAIS DE CONTROLE
+					Jump <= '0';
 					RegWrite <= '0'; 
 					MemtoReg <= '0'; 
 					Branch <= '0';	
@@ -71,15 +74,16 @@ ARCHITECTURE behavior OF Control IS
 					
 				WHEN "100" =>  --BEQ 
 					RegWrite <= '0'; 
-					MemtoReg <= '1'; -- COMO JA RESOLVE NO SEGUNDO ESTAGIO, TANTO FAZ OS SINAIS AQUI
+					MemtoReg <= '1'; -- 0 OU 1 PODE SER QUALQUER UM
 					Branch <= '1';	
 					MemWrite <= '0'; 
 					MemRead <= '0';  
-					ALUSrc  <= '0';  -- COMO JA RESOLVE NO SEGUNDO 	ESTAGIO, TANTO FAZ OS SINAIS AQUI 
-					ALUOp   <= "00"; -- COMO JA RESOLVE NO SEGUNDO 	ESTAGIO, TANTO FAZ OS SINAIS AQUI 
-					RegDst  <= '1';  -- COMO JA RESOLVE NO SEGUNDO 	ESTAGIO, TANTO FAZ OS SINAIS AQUI 
+					ALUSrc  <= '0';    
+					ALUOp   <= "01";  
+					RegDst  <= '1'; -- 0 OU 1 PODE SER QUALQUER UM  
 					
 				WHEN "101" =>  --JMP
+					Jump <= '1';
 					RegWrite <= '0'; 
 					MemtoReg <= '1'; -- COMO JA RESOLVE NO SEGUNDO ESTAGIO, TANTO FAZ OS SINAIS AQUI
 					Branch <= '0';	
@@ -91,7 +95,7 @@ ARCHITECTURE behavior OF Control IS
 					
 				WHEN OTHERS => --Opcode invalido
 				
-					ID_Flush <= '0';
+					ID_Flush <= '1';
 					RegWrite <= '0'; 
 					MemtoReg <= '0';
 				   Branch <= '0';		
