@@ -24,6 +24,12 @@ PACKAGE components IS
 				cout, overflow : OUT STD_LOGIC );
 	END COMPONENT;
 	
+	COMPONENT bufferTriState
+		PORT (Data : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
+				Gate : IN STD_LOGIC;
+				Q    : OUT STD_LOGIC_VECTOR(15 DOWNTO 0));
+	END COMPONENT;
+		
 	COMPONENT Forward_Unit
 		PORT (EX_MEM_RegWrite: IN STD_LOGIC;
 				MEM_WB_RegWrite: IN STD_LOGIC;
