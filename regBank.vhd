@@ -4,22 +4,22 @@ USE ieee.numeric_std.all;
 USE work.components.all;
 
 ENTITY regBank IS
-	PORT ( writeData                                   : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
-			 readData1, readData2                        : OUT STD_LOGIC_VECTOR(15 DOWNTO 0);
-			 writeRegister, readRegister1, readRegister2 : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+	PORT ( writeData                                   : IN STD_LOGIC_VECTOR(15 DOWNTO 0);    -- dado que sera escrito
+			 readData1, readData2                        : OUT STD_LOGIC_VECTOR(15 DOWNTO 0);   -- dados lidos de rs e rt
+			 writeRegister, readRegister1, readRegister2 : IN STD_LOGIC_VECTOR(3 DOWNTO 0);     -- regWrite: sinal de escrita
 			 regWrite, clock, resetn                     : IN STD_LOGIC
 			);
 END regBank;
 
 ARCHITECTURE behavioral OF regBank IS
 	TYPE dataIn IS ARRAY (0 TO 15) OF STD_LOGIC_VECTOR(15 downto 0);
-   SIGNAL regsDataIn : dataIn;
+   SIGNAL regsDataIn : dataIn;   -- dados que entram nos registradores
 	
 	TYPE dataOut IS ARRAY (0 TO 15) OF STD_LOGIC_VECTOR(15 downto 0);
-   SIGNAL regsDataOut : dataOut;
+   SIGNAL regsDataOut : dataOut; -- dados que saem dos buffers tri-state
 	
-	SIGNAL regsIn  : STD_LOGIC_VECTOR(15 DOWNTO 0);
-	SIGNAL regsOut1, regsOut2 : STD_LOGIC_VECTOR(15 DOWNTO 0);
+	SIGNAL regsIn  : STD_LOGIC_VECTOR(15 DOWNTO 0);  -- sinais para rIn de cada registrador
+	SIGNAL regsOut1, regsOut2 : STD_LOGIC_VECTOR(15 DOWNTO 0);  -- gates de cada buffer de caga registrador
 
 BEGIN
 	-- instanciando os 16 registradores
@@ -40,6 +40,7 @@ BEGIN
 	reg15 : register16bits PORT MAP(writeData, clock, resetn, regsIn(14), regsDataIn(14));
 	reg16 : register16bits PORT MAP(writeData, clock, resetn, regsIn(15), regsDataIn(15));
 	
+	-- instanciando os buffers tri-state
 	buffer01: bufferTriState PORT MAP(regsDataIn(0),  regsOut1(0)  OR regsOut2(0),  regsDataOut(0)) ;
 	buffer02: bufferTriState PORT MAP(regsDataIn(1),  regsOut1(1)  OR regsOut2(1),  regsDataOut(1)) ;
 	buffer03: bufferTriState PORT MAP(regsDataIn(2),  regsOut1(2)  OR regsOut2(2),  regsDataOut(2)) ;
@@ -60,7 +61,7 @@ BEGIN
 	
 	PROCESS(clocK)
 	BEGIN
-		-- ESCRITA
+		-- ESCRITA (só escreve na subida do clock e quando regWrite vale 1)
 		IF RISING_EDGE(clock) AND regWrite = '1' THEN			
 			CASE writeRegister IS
 				WHEN "0000" =>
@@ -118,7 +119,8 @@ BEGIN
 		END IF;
 	END PROCESS;
 			
-	-- LEITURA
+	-- LEITURA (é assincrona, portanto nao depende do clock)
+	-- habilita o gate do buffer correto e regData recebe a saída do buffer correspondente
 	PROCESS(readRegister1, regsDataOut)
 		BEGIN
 			CASE readRegister1 IS
