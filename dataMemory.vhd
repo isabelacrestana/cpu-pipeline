@@ -19,7 +19,7 @@ END dataMemory;
 
 ARCHITECTURE Behavioral OF dataMemory IS 
 	-- mudar tamanho da memoria depois para 2**16 - 1
-	TYPE memArray IS ARRAY((2**8)-1 DOWNTO 0) OF STD_LOGIC_VECTOR(7 DOWNTO 0); 
+	TYPE memArray IS ARRAY(0 TO 255) OF STD_LOGIC_VECTOR(7 DOWNTO 0); 
 	SIGNAL mem            : memArray;
 	SIGNAL numericAddress : INTEGER;
 	 
