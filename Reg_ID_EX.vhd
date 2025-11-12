@@ -1,17 +1,17 @@
 LIBRARY ieee ;
 USE ieee.std_logic_1164.all;
 
--- registrador de 84 bits
+-- registrador de 85 bits
 ENTITY Reg_ID_EX IS 
 	PORT(
 		Clk: IN STD_LOGIC;
-		D : IN STD_LOGIC_VECTOR(83 DOWNTO 0);
-		Q : OUT STD_LOGIC_VECTOR(83 DOWNTO 0)
+		D : IN STD_LOGIC_VECTOR(84 DOWNTO 0);
+		Q : OUT STD_LOGIC_VECTOR(84 DOWNTO 0)
 		
 		-- mapeamento:
-		-- 83 a 80 : EX
-	   -- 79 a 78 : M
-	   -- 77 a 60 : WB
+		-- 84 a 81 : EX   (ALUSrc, AluOp(2 bits) and RegDst)
+	   -- 80 a 78 : M    (MemWrite, MemRead, Branch)
+	   -- 77 a 76 : WB   (memToReg and regWrite)
 		-- 75 a 59 : PcPlus4
 		-- 59 a 44 : Read_data1
 		-- 43 a 28 : Read_data2
