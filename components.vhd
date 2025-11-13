@@ -17,6 +17,12 @@ PACKAGE components IS
 	
 	END COMPONENT;
 	
+	COMPONENT adder
+		PORT (A, B   : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
+				Result : OUT STD_LOGIC_VECTOR(15 DOWNTO 0)
+				);
+	END COMPONENT;
+	
 	COMPONENT rippleCarry
 		PORT (cin            : IN STD_LOGIC ;
 				a,b            : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
@@ -56,12 +62,21 @@ PACKAGE components IS
 	COMPONENT Control
 		PORT(Opcode: IN STD_LOGIC_VECTOR(2 DOWNTO 0); 
 			  ID_Flush: OUT STD_LOGIC;
-			  Control_Signals: OUT STD_LOGIC_VECTOR(7 DOWNTO 0));	  
+			  Control_Signals: OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+			  Branch: OUT STD_LOGIC;
+			  Jump: OUT STD_LOGIC);	  
 	END COMPONENT;
 	
-	COMPONENT shiftLeft
+	COMPONENT shiftLeftJump
+		PORT (DataIn  : IN STD_LOGIC_VECTOR(12 DOWNTO 0);
+			   DataOut : OUT STD_LOGIC_VECTOR(13 DOWNTO 0)
+			);
+	END COMPONENT;
+	
+	COMPONENT shiftLeftBranch
 		PORT (DataIn  : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
-				DataOut : OUT STD_LOGIC_VECTOR(15 DOWNTO 0));
+			   DataOut : OUT STD_LOGIC_VECTOR(15 DOWNTO 0)
+			);
 	END COMPONENT;
 	
 	COMPONENT signalExtend
@@ -72,8 +87,8 @@ PACKAGE components IS
 	COMPONENT Reg_ID_EX 
 		PORT(
 		Clk: IN STD_LOGIC;
-		D : IN STD_LOGIC_VECTOR(83 DOWNTO 0);
-		Q : OUT STD_LOGIC_VECTOR(83 DOWNTO 0));
+		D : IN STD_LOGIC_VECTOR(79 DOWNTO 0);
+		Q : OUT STD_LOGIC_VECTOR(79 DOWNTO 0));
 	END COMPONENT;
 	
 	COMPONENT Reg_EX_MEM
@@ -88,6 +103,64 @@ PACKAGE components IS
 			Clk : IN STD_LOGIC;
 			D   : IN  STD_LOGIC_VECTOR(37 DOWNTO 0);
 			Q   : OUT STD_LOGIC_VECTOR(37 DOWNTO 0));
+	END COMPONENT;
+	
+	COMPONENT ALU_Control
+		PORT(
+			Function_code: IN STD_LOGIC;
+			ALUop: IN STD_LOGIC_VECTOR(1 DOWNTO 0);
+			ALUaction: OUT STD_LOGIC
+		);
+	END COMPONENT;
+	
+	COMPONENT alu
+		PORT(	
+			a, b      : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
+			operation : IN STD_LOGIC;
+			result    : OUT STD_LOGIC_VECTOR(15 DOWNTO 0)
+			 );
+	END COMPONENT;
+	
+	COMPONENT Hazard_Detection_Unit
+		PORT(
+			IF_ID_Rs, IF_ID_Rt: IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+			ID_EX_Rt: IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+			ID_EX_MemRead: IN STD_LOGIC;
+			PC_Write, IF_ID_Write: OUT STD_LOGIC
+		);
+	END COMPONENT;
+	
+	COMPONENT instructionMemory 
+		GENERIC (
+        NUM_BITS : INTEGER := 16
+					);
+	 
+		PORT( 
+         address     : IN STD_LOGIC_VECTOR(NUM_BITS-1 DOWNTO 0);		  
+		   instruction : OUT STD_LOGIC_VECTOR(NUM_BITS-1 DOWNTO 0);
+         clk         : IN STD_LOGIC
+        );
+	END COMPONENT;
+	
+	COMPONENT dataMemory 
+		GENERIC (
+	  NUM_BITS : INTEGER := 16
+					);
+ 
+		PORT ( 
+	  writeData : IN STD_LOGIC_VECTOR(NUM_BITS-1 DOWNTO 0);		  
+	  readData  : OUT STD_LOGIC_VECTOR(NUM_BITS-1 DOWNTO 0);
+	  address   : IN STD_LOGIC_VECTOR(NUM_BITS-1 DOWNTO 0);
+	  memWrite  : IN STD_LOGIC;
+	  memRead   : IN STD_LOGIC;
+	  clk       : IN STD_LOGIC
+			  );
+	END COMPONENT;
+	
+	COMPONENT comparator
+		PORT (A,B                  : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
+		   Branch_Taken         : OUT STD_LOGIC
+			  );
 	END COMPONENT;
 	
 END components;

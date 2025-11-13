@@ -3,7 +3,7 @@ USE ieee.std_logic_1164.all;
 
 ENTITY comparator IS
 	PORT (A,B                  : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
-		   Branch_Taken               : OUT STD_LOGIC
+		   Branch_Taken         : OUT STD_LOGIC
 			);
 END comparator;
 

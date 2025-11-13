@@ -35,7 +35,7 @@ ARCHITECTURE Behavioral OF instructionMemory IS
 		-- BEQ R1, R2, 3
 		8 => "10000010",  9 => "01000011",
 
-		-- JMP 32
+		-- JMP 64 (pulando para o endereço 64)
 		10 => "10100000", 11 => "00100000",
 
 		-- NOP

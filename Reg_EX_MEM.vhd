@@ -9,9 +9,9 @@ ENTITY Reg_EX_MEM IS
 			Q   : OUT STD_LOGIC_VECTOR(39 DOWNTO 0)
 			
 			-- mapeamento 
-			-- 39 a 38 : M  (MemWrite, MemRead)
-			-- 37 a 36 : WB (memToReg and regWrite)
-			-- 35 a 20 : Alu_Out
+			-- 39 a 38 : WB  (RegWrite, MemtoReg)
+			-- 37 a 36 : M ( MemWrite, MemRead)
+			-- 35 a 20 : Alu_Result
 			-- 19 a 4  : Alu_B
 			-- 3 a 0   : rtOrRdNum 
  	);

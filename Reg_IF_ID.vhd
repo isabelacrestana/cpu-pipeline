@@ -10,7 +10,7 @@ ENTITY Reg_IF_ID IS
 			wr    : IN STD_LOGIC;	-- sinal de escrita (IF/ID Write)
 			flush : IN STD_LOGIC -- sinal de reset do registrador
 			-- mapeamento 
-			-- 31 a 16 : PC + 4
+			-- 31 a 16 : PC + 2
 			-- 15 a 0  : instrucao 
  	);
 END Reg_IF_ID;
