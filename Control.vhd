@@ -5,8 +5,8 @@ ENTITY Control IS
 	PORT(
 		Opcode: IN STD_LOGIC_VECTOR(2 DOWNTO 0); -- 3 bits de opcode
 		ID_Flush: OUT STD_LOGIC;
-		Control_Signals: OUT STD_LOGIC_VECTOR(8 DOWNTO 0)  -- 8 sinais utilizados. OBS: AluOp usa dois bits, com isso 7 + 2 = 9
-		Jump: OUT STD_LOGIC;
+		Control_Signals: OUT STD_LOGIC_VECTOR(8 DOWNTO 0);  -- 8 sinais utilizados. OBS: AluOp usa dois bits, com isso 7 + 2 = 9
+		Jump: OUT STD_LOGIC
 	);
 END Control;
 
