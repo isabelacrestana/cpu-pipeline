@@ -5,8 +5,8 @@ USE ieee.std_logic_1164.all;
 ENTITY Reg_ID_EX IS 
 	PORT(
 		Clk: IN STD_LOGIC;
-		D : IN STD_LOGIC_VECTOR(84 DOWNTO 0);
-		Q : OUT STD_LOGIC_VECTOR(84 DOWNTO 0)
+		D : IN STD_LOGIC_VECTOR(83 DOWNTO 0);
+		Q : OUT STD_LOGIC_VECTOR(83 DOWNTO 0)
 		
 		-- mapeamento:
 		-- 83 a 80 : EX (ALUSrc, AluOp(2 bits) and RegDst)
