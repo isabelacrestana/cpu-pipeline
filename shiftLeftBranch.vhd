@@ -1,14 +1,14 @@
 LIBRARY ieee;
 USE ieee.std_logic_1164.all;
 
-ENTITY shiftLeft IS
+ENTITY shiftLeftBranch IS
 	PORT (DataIn  : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
 			DataOut : OUT STD_LOGIC_VECTOR(15 DOWNTO 0)
 			);
-END shiftLeft;
+END shiftLeftBranch;
 
-ARCHITECTURE behavior OF shiftLeft IS
+ARCHITECTURE behavior OF shiftLeftBranch IS
 BEGIN		
-	DataOut(15 DOWNTO 2) <= DataIn(13 DOWNTO 0);
-	DataOut(1 DOWNTO 0) <= "00";
+	DataOut(15 DOWNTO 1) <= DataIn(14 DOWNTO 0);
+	DataOut(0) <= '0';
 END behavior;

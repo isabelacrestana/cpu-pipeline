@@ -9,7 +9,7 @@ ENTITY Reg_MEM_WB IS
 			Q   : OUT STD_LOGIC_VECTOR(37 DOWNTO 0)	
 			
 			-- mapeamento 
-			-- 37 a 36 : WB
+			-- 37 a 36 : WB (memToReg and regWrite)
 			-- 35 a 20 : memData
 			-- 19 a 4  : Alu_result
 			-- 3  a 0  : rtOrRdNum
