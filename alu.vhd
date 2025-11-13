@@ -7,7 +7,7 @@ ENTITY alu IS
 	PORT(	
 			a, b      : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
 			operation : IN STD_LOGIC;
-			result    : OUT STD_LOGIC_VECTOR(15 DOWNTO 0);
+			result    : OUT STD_LOGIC_VECTOR(15 DOWNTO 0)
  	);
 END alu;
 

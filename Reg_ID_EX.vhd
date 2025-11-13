@@ -4,9 +4,10 @@ USE ieee.std_logic_1164.all;
 -- registrador de 84 bits
 ENTITY Reg_ID_EX IS 
 	PORT(
-		Clk: IN STD_LOGIC;
-		D : IN STD_LOGIC_VECTOR(83 DOWNTO 0);
-		Q : OUT STD_LOGIC_VECTOR(83 DOWNTO 0)
+		Clk   : IN STD_LOGIC;
+		D     : IN STD_LOGIC_VECTOR(83 DOWNTO 0);
+		Q     : OUT STD_LOGIC_VECTOR(83 DOWNTO 0);
+		flush : IN STD_LOGIC -- sinal de reset (para bubble)
 		
 		-- mapeamento:
 		-- 83 a 80 : EX (ALUSrc, AluOp(2 bits) and RegDst)
@@ -25,10 +26,16 @@ END Reg_ID_EX;
 
 ARCHITECTURE behavior OF Reg_ID_EX IS
 BEGIN
-	PROCESS(Clk)
+	PROCESS(Clk, flush)
 	BEGIN
-		IF Clk'EVENT AND Clk='1' THEN
-			Q <= D;
+		IF RISING_EDGE(Clk) THEN
+			IF flush = '1' THEN
+				Q <= (OTHERS => '0');
+				
+			ELSE		
+				Q <= D;
+				
+			END IF;
 		END IF;
 	END PROCESS;
 		
