@@ -8,7 +8,6 @@ ENTITY alu IS
 			a, b      : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
 			operation : IN STD_LOGIC;
 			result    : OUT STD_LOGIC_VECTOR(15 DOWNTO 0);
-			zero      : OUT STD_LOGIC
  	);
 END alu;
 
@@ -28,7 +27,5 @@ BEGIN
 			result <= subRes;
 		END IF;
 	END PROCESS;
-
-	zero <= '1' WHEN (result = "0000000000000000") ELSE '0';
-
+	
 END Behavior;
