@@ -84,6 +84,16 @@ PACKAGE components IS
 				DataOut : OUT STD_LOGIC_VECTOR(15 DOWNTO 0));
 	END COMPONENT;
 	
+	COMPONENT Reg_IF_ID 
+		PORT(	
+				Clk   : IN STD_LOGIC;
+				D     : IN  STD_LOGIC_VECTOR(31 DOWNTO 0);
+				Q     : OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
+				wr    : IN STD_LOGIC;	
+				flush : IN STD_LOGIC
+		);
+	END COMPONENT;
+	
 	COMPONENT Reg_ID_EX 
 		PORT(
 		Clk: IN STD_LOGIC;
