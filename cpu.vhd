@@ -41,10 +41,31 @@ ARCHITECTURE behavior OF cpu IS
 	SIGNAL ifFlush : STD_LOGIC;    -- sinal para zerar o reg
 	
 	SIGNAL If_Id_Out : STD_LOGIC_VECTOR(31 DOWNTO 0); -- conteudo do reg IF/ID
+	
+	
+	SIGNAL writeData: STD_LOGIC_VECTOR(15 DOWNTO 0); -- -- dado que sera escrito no regBank
+	SIGNAL readData1: STD_LOGIC_VECTOR(15 DOWNTO 0);   -- dados lidos de rs
+	SIGNAL readData2: STD_LOGIC_VECTOR(15 DOWNTO 0);   -- dados lidos de rT
+	SIGNAL writeRegister: STD_LOGIC_VECTOR(3 DOWNTO 0); -- registrador que sera escrito o dado
+	SIGNAL readRegister1: STD_LOGIC_VECTOR(3 DOWNTO 0); -- registrador que sera lido o dado 1
+	SIGNAL readRegister2: STD_LOGIC_VECTOR(3 DOWNTO 0); -- registrador que sera lido o dado 2
+	SIGNAL regWrite: STD_LOGIC; -- sinal de escrita no regBank
 
+	SIGNAL signExtend_Out: STD_LOGIC_VECTOR(15 DOWNTO 0); -- saida do Sign Extend
+	
+	SIGNAL shiftLeftBranch_out: STD_LOGIC_VECTOR(15 DOWNTO 0); -- saida do shift left 1 para o branch
+	SIGNAL shiftLeftJump_Out: STD_LOGIC_VECTOR(13 DOWNTO 0); -- saida do shift left 1 para o jump
+	
+	SIGNAL ID_Flush: STD_LOGIC; -- sinal de flush para gerar uma bolha 
+	SIGNAL controlSignals: STD_LOGIC_VECTOR(7 DOWNTO 0); -- Sinais de controle
+	SIGNAL signalsOut: STD_LOGIC_VECTOR(7 DOWNTO 0); -- Saida dos sinais do MUX de ID_Flush
+	
+	SIGNAL branch: STD_LOGIC; --sinal de controle para determinar se há uma instrucao de BEQ
+	SIGNAL branchTaken: STD_LOGIC; --sinal de controle para determinar se há uma instrucao de BEQ
+	
+	SIGNAL Id_Ex_Out: STD_LOGIC_VECTOR(79 DOWNTO 0); -- conteudo do reg IF/ID
 BEGIN
 	
-	resetn <= KEY(0);
 	
 	-- 1° ESTÁGIO PIPELINE
 	
@@ -71,27 +92,40 @@ BEGIN
 	-- 2° ESTÁGIO PIPELINE
 	
 		-- RegBank
+		Reg_Bank: regBank PORT MAP(writeData, readData1, readData2, writeRegister, readRegister1, readRegister2, regWrite, clock);
 		
 		-- Branch Adder
-	
-		-- ShiftLeft Branch
-
-		-- Signal Extend
-	
-		-- ShiftLeft Jump
-	
-		-- Control
+		Branch_Adder: Adder PORT MAP(If_Id_Out(31 DOWNTO 16), shiftLeftBranch_out, branchTarget);
 		
-		-- Hazard Detection
+		-- ShiftLeft Branch
+		Shift_Left_Branch: shiftLeftBranch PORT MAP(signExtend_Out, shiftLeftBranch_out);
+		
+		-- Signal Extend
+		Signal_Extend: signalExtend PORT MAP(If_Id_Out(4 DOWNTO 0), signExtend_Out);
+		
+		-- ShiftLeft Jump
+		Shift_Left_Jump: shiftLeftJump PORT MAP(If_Id_Out(12 DOWNTO 0), shiftLeftJump_Out);
+		
+		-- Jump Address Concatenation
+		jumpTarget <= If_Id_Out(31 DOWNTO 30) & shiftLeftJump_Out;
+		
+		-- Control
+		Control_unit: Control PORT MAP(If_Id_Out(15 DOWNTO 13), ID_Flush, controlSignals, branch, jump);
+		
+		-- Hazard Detection Unit
+		HazardDetection_Unit: Hazard_Detection_Unit PORT MAP(If_Id_Out(12 DOWNTO 9), If_Id_Out(8 DOWNTO 5), Id_Ex_Out(7 DOWNTO 4),Id_Ex_Out(76), pcWrite, ifIdWrite);
 		
 		-- Comparator (xnor)
+		Comparator_Hardware: comparator PORT MAP(readData1, readData2, branchTaken);
 		
 		-- Branch and BranchTaken
+		ifFlush <= branchTaken AND branch;
 		
 		-- MUX ID Flush
+		MUX_ID_Flush: mux2to1_8bits PORT MAP(controlSignals, "00000000", ID_Flush, signalsOut);
 		
 		-- Reg ID/EX
-		
+		Register_ID_EX: Reg_ID_EX PORT MAP(Clock, signalsOut & If_Id_Out(31 DOWNTO 16) & readData1 & readData2 & signExtend_Out & If_Id_Out(8 DOWNTO 5) & If_Id_Out(4 DOWNTO 1));
 ------------------------------
 
 	-- 3° ESTÁGIO PIPELINE
