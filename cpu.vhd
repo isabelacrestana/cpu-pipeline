@@ -75,12 +75,14 @@ ARCHITECTURE behavior OF cpu IS
 	SIGNAL ALU_SrcA: STD_LOGIC_VECTOR(15 DOWNTO 0); -- Entrada A da ALU
 	SIGNAL ALU_SrcB: STD_LOGIC_VECTOR(15 DOWNTO 0); -- Entrada B da ALU
 	SIGNAL ALU_opcode: STD_LOGIC; -- Operação que a ALU irá fazer, 0(add) or 1(sub)
+	SIGNAL Alu_result: STD_LOGIC_VECTOR(15 DOWNTO 0); -- Resultado da ALU
 	
 	SIGNAL Reg_Destiny: STD_LOGIC_VECTOR(3 DOWNTO 0); -- Registrador Destino(rt or rd)
 	
-	
 	SIGNAL Ex_Mem_Out: STD_LOGIC_VECTOR(39 DOWNTO 0); -- conteudo do reg EX/MEM
 	
+	
+	SIGNAL readDataMem: STD_LOGIC_VECTOR(15 DOWNTO 0); -- conteudo lido da memoria de dados
 	
 	SIGNAL Mem_Wb_Out: STD_LOGIC_VECTOR(37 DOWNTO 0); -- conteudo do reg MEM/WB 
 BEGIN
@@ -145,36 +147,41 @@ BEGIN
 		
 		-- Reg ID/EX
 		Register_ID_EX: Reg_ID_EX PORT MAP(Clock, signalsOut & If_Id_Out(31 DOWNTO 16) & readData1 & readData2 & signExtend_Out & If_Id_Out(12 DOWNTO 9) & If_Id_Out(8 DOWNTO 5) & If_Id_Out(4 DOWNTO 1), Id_Ex_Out);
+		
 ------------------------------
 
 	-- 3° ESTÁGIO PIPELINE
 	
 		-- Mux AluSource
-		MUX_ALU_Src: mux2to1 PORT MAP(Id_Ex_Out(39 DOWNTO 24), Id_Ex_Out(23 DOWNTO 8), Id_Ex_Out(73), aluSrc_Out);
+		MUX_ALU_Src: mux2to1 PORT MAP(Id_Ex_Out(43 DOWNTO 28), Id_Ex_Out(27 DOWNTO 12), Id_Ex_Out(77), aluSrc_Out);
 		
 		-- Mux Forward_A
-		MUX_Forward_A: mux3to1 PORT MAP(Id_Ex_Out(55 DOWNTO 40), MemtoReg_Out, Ex_Mem_Out(35 DOWNTO 20), Forward_A, ALU_SrcA);
+		MUX_Forward_A: mux3to1 PORT MAP(Id_Ex_Out(59 DOWNTO 44), MemtoReg_Out, Ex_Mem_Out(35 DOWNTO 20), Forward_A, ALU_SrcA);
 		
 		-- Mux Forward_B
 		MUX_Forward_B: mux3to1 PORT MAP(alurSrc_Out, MemtoReg_Out, Ex_Mem_Out(35 DOWNTO 20), Forward_B, ALU_SrcB);
 		
 		-- Mux Reg_Dst
-		MUX_Reg_Dst: mux2to1 PORT MAP(Id_Ex_Out(7 DOWNTO 4), Id_Ex_Out(3 DOWNTO 0), Id_Ex_Out(72), Reg_Destiny);
+		MUX_Reg_Dst: mux2to1 PORT MAP(Id_Ex_Out(7 DOWNTO 4), Id_Ex_Out(3 DOWNTO 0), Id_Ex_Out(76), Reg_Destiny);
 		
 		-- ALU_Control
-		ALU_Controler: ALU_Control PORT MAP(Id_Ex_Out(8), Id_Ex_Out(75 DOWNTO 74), ALU_opcode);
+		ALU_Controler: ALU_Control PORT MAP(Id_Ex_Out(12), Id_Ex_Out(79 DOWNTO 78), ALU_opcode);
 		
 		-- Forward Unity
-		Forward_Unity: Forward_Unit PORT MAP(Ex_Mem_Out(39), Mem_Wb_Out(37), Ex_Mem_Out(3 DOWNTO 0), Mem_Wb_Out(3 DOWNTO 0), Id_Ex_Out());
+		Forward_Unity: Forward_Unit PORT MAP(Ex_Mem_Out(39), Mem_Wb_Out(37), Ex_Mem_Out(3 DOWNTO 0), Mem_Wb_Out(3 DOWNTO 0), Id_Ex_Out(11 DOWNTO 8), Id_Ex_Out(7 DOWNTO 4), Forward_A, Forward_B);
+		
 		-- ALU
+		ULA: alu PORT MAP(ALU_SrcA, ALU_SrcB, ALU_opcode, Alu_result);
 		
 		-- Reg EX/MEM
+		Register_EX_MEM: Reg_Ex_Mem PORT MAP(Clock, iD_Ex_Out(83 DOWNTO 80) & Alu_result & Alu_SrcB & Reg_Destiny, Ex_Mem_Out);
 		
 ------------------------------
 		
 	-- 4° ESTÁGIO PIPELINE
 	
 		-- Data Memory
+		Data_Memory: dataMemory PORT MAP(Ex_Mem_Out(19 DOWNTO 4), readDataMem, Ex_Mem_Out(35 DOWNTO 20), Ex_Mem_Out(37), Ex_Mem_Out(36), Clock);
 		
 ------------------------------
 
