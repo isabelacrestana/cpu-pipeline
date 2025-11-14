@@ -53,6 +53,13 @@ PACKAGE components IS
 				y   : OUT STD_LOGIC_VECTOR(15 DOWNTO 0));
 	END COMPONENT;
 	
+	COMPONENT mux2to1_4bits
+		PORT (a,b : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+				s   : IN STD_LOGIC;
+				y   : OUT STD_LOGIC_VECTOR(3 DOWNTO 0)
+				);
+	END component;
+	
 	COMPONENT mux3to1
 		PORT (a,b,c : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
 			s     : IN STD_LOGIC_VECTOR(1 DOWNTO 0);
