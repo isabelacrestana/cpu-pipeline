@@ -5,7 +5,7 @@ PACKAGE components IS
 
 	COMPONENT register16bits
 		PORT (D                  : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
-				Clock, Resetn, Rin : IN STD_LOGIC;
+				Clock, Rin         : IN STD_LOGIC;
 				Q                  : OUT STD_LOGIC_VECTOR(15 DOWNTO 0));
 	END COMPONENT;	
 	
@@ -172,5 +172,13 @@ PACKAGE components IS
 		   Branch_Taken         : OUT STD_LOGIC
 			  );
 	END COMPONENT;
+	
+	COMPONENT regBank
+		PORT ( writeData                                   : IN STD_LOGIC_VECTOR(15 DOWNTO 0);    -- dado que sera escrito
+			 readData1, readData2                        : OUT STD_LOGIC_VECTOR(15 DOWNTO 0);   -- dados lidos de rs e rt
+			 writeRegister, readRegister1, readRegister2 : IN STD_LOGIC_VECTOR(3 DOWNTO 0);     -- regWrite: sinal de escrita
+			 regWrite, clock                             : IN STD_LOGIC
+			);
+   END COMPONENT;
 	
 END components;

@@ -7,7 +7,7 @@ ENTITY regBank IS
 	PORT ( writeData                                   : IN STD_LOGIC_VECTOR(15 DOWNTO 0);    -- dado que sera escrito
 			 readData1, readData2                        : OUT STD_LOGIC_VECTOR(15 DOWNTO 0);   -- dados lidos de rs e rt
 			 writeRegister, readRegister1, readRegister2 : IN STD_LOGIC_VECTOR(3 DOWNTO 0);     -- regWrite: sinal de escrita
-			 regWrite, clock, resetn                     : IN STD_LOGIC
+			 regWrite, clock                             : IN STD_LOGIC
 			);
 END regBank;
 
@@ -23,22 +23,22 @@ ARCHITECTURE behavioral OF regBank IS
 
 BEGIN
 	-- instanciando os 16 registradores
-	reg01 : register16bits PORT MAP(writeData, clock, resetn, regsIn(0),  regsDataIn(0)) ;
-	reg02 : register16bits PORT MAP(writeData, clock, resetn, regsIn(1),  regsDataIn(1)) ;
-	reg03 : register16bits PORT MAP(writeData, clock, resetn, regsIn(2),  regsDataIn(2)) ;
-	reg04 : register16bits PORT MAP(writeData, clock, resetn, regsIn(3),  regsDataIn(3)) ;
-	reg05 : register16bits PORT MAP(writeData, clock, resetn, regsIn(4),  regsDataIn(4)) ;
-	reg06 : register16bits PORT MAP(writeData, clock, resetn, regsIn(5),  regsDataIn(5)) ;
-	reg07 : register16bits PORT MAP(writeData, clock, resetn, regsIn(6),  regsDataIn(6)) ;
-	reg08 : register16bits PORT MAP(writeData, clock, resetn, regsIn(7),  regsDataIn(7)) ;
-	reg09 : register16bits PORT MAP(writeData, clock, resetn, regsIn(8),  regsDataIn(8)) ;
-	reg10 : register16bits PORT MAP(writeData, clock, resetn, regsIn(9),  regsDataIn(9)) ;
-	reg11 : register16bits PORT MAP(writeData, clock, resetn, regsIn(10), regsDataIn(10));
-	reg12 : register16bits PORT MAP(writeData, clock, resetn, regsIn(11), regsDataIn(11));
-	reg13 : register16bits PORT MAP(writeData, clock, resetn, regsIn(12), regsDataIn(12));
-	reg14 : register16bits PORT MAP(writeData, clock, resetn, regsIn(13), regsDataIn(13));
-	reg15 : register16bits PORT MAP(writeData, clock, resetn, regsIn(14), regsDataIn(14));
-	reg16 : register16bits PORT MAP(writeData, clock, resetn, regsIn(15), regsDataIn(15));
+	reg01 : register16bits PORT MAP(writeData, clock, regsIn(0),  regsDataIn(0)) ;
+	reg02 : register16bits PORT MAP(writeData, clock, regsIn(1),  regsDataIn(1)) ;
+	reg03 : register16bits PORT MAP(writeData, clock, regsIn(2),  regsDataIn(2)) ;
+	reg04 : register16bits PORT MAP(writeData, clock, regsIn(3),  regsDataIn(3)) ;
+	reg05 : register16bits PORT MAP(writeData, clock, regsIn(4),  regsDataIn(4)) ;
+	reg06 : register16bits PORT MAP(writeData, clock, regsIn(5),  regsDataIn(5)) ;
+	reg07 : register16bits PORT MAP(writeData, clock, regsIn(6),  regsDataIn(6)) ;
+	reg08 : register16bits PORT MAP(writeData, clock, regsIn(7),  regsDataIn(7)) ;
+	reg09 : register16bits PORT MAP(writeData, clock, regsIn(8),  regsDataIn(8)) ;
+	reg10 : register16bits PORT MAP(writeData, clock, regsIn(9),  regsDataIn(9)) ;
+	reg11 : register16bits PORT MAP(writeData, clock, regsIn(10), regsDataIn(10));
+	reg12 : register16bits PORT MAP(writeData, clock, regsIn(11), regsDataIn(11));
+	reg13 : register16bits PORT MAP(writeData, clock, regsIn(12), regsDataIn(12));
+	reg14 : register16bits PORT MAP(writeData, clock, regsIn(13), regsDataIn(13));
+	reg15 : register16bits PORT MAP(writeData, clock, regsIn(14), regsDataIn(14));
+	reg16 : register16bits PORT MAP(writeData, clock, regsIn(15), regsDataIn(15));
 	
 	-- instanciando os buffers tri-state
 	buffer01: bufferTriState PORT MAP(regsDataIn(0),  regsOut1(0)  OR regsOut2(0),  regsDataOut(0)) ;

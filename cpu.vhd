@@ -7,7 +7,7 @@ ENTITY cpu IS
 		  -- mapear os 3 displays 7 segs para os regs 1, 2 e 3
 		  -- mapear display 7 segs do PC
 		  
-			KEY : IN STD_LOGIC_VECTOR(1 DOWNTO 0)    -- posicao 1 = ENABLE ; posicao 0 = Resetn 
+			KEY : IN STD_LOGIC_VECTOR(1 DOWNTO 0)    -- posicao 0 = ENABLE  
 
 		  );
 END cpu;
@@ -15,13 +15,13 @@ END cpu;
 ARCHITECTURE behavior OF cpu IS
 
 	-- mudanca na frequencia do clock
+	
 	CONSTANT max: INTEGER := 50000000;			-- Ciclo do clock (é ajustável)
 	CONSTANT half: INTEGER := max/2;				-- Meio Ciclo
 	SIGNAL clockticks: INTEGER RANGE 0 TO max;-- Conta cada ciclo do clock de entrada
 	SIGNAL clock: STD_LOGIC;	
 
 	-- sinais internos	
-	SIGNAL resetn : STD_LOGIC;  -- resetn vai receber o valor da key da fpga
 	
 	SIGNAL pcDataIn : STD_LOGIC_VECTOR(15 DOWNTO 0);  -- dado que entra no PC
 	SIGNAL pcDataOut : STD_LOGIC_VECTOR(15 DOWNTO 0); -- dado que sai do PC
@@ -49,7 +49,7 @@ BEGIN
 	-- 1° ESTÁGIO PIPELINE
 	
 		-- PC
-		PC: register16bits PORT MAP(pcDataIn, clock, resetn, pcWrite, pcDataOut);
+		PC: register16bits PORT MAP(pcDataIn, clock, pcWrite, pcDataOut);
 	
 		-- Memoria de Instrucoes
 		Instuction_Memory: instructionMemory PORT MAP(pcDataOut, instruction, clock);
@@ -71,7 +71,7 @@ BEGIN
 	-- 2° ESTÁGIO PIPELINE
 	
 		-- RegBank
-	
+		
 		-- Branch Adder
 	
 		-- ShiftLeft Branch
