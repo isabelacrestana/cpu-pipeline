@@ -5,7 +5,7 @@ PACKAGE components IS
 
 	COMPONENT register16bits
 		PORT (D                  : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
-				Clock, Resetn, Rin : IN STD_LOGIC;
+				Clock, Rin         : IN STD_LOGIC;
 				Q                  : OUT STD_LOGIC_VECTOR(15 DOWNTO 0));
 	END COMPONENT;	
 	
@@ -59,6 +59,13 @@ PACKAGE components IS
 			y     : OUT STD_LOGIC_VECTOR(15 DOWNTO 0));
 	END COMPONENT;
 	
+	COMPONENT mux2to1_8bits
+		PORT (a,b : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
+			s   : IN STD_LOGIC;
+			y   : OUT STD_LOGIC_VECTOR(7 DOWNTO 0)
+			);
+	END COMPONENT;
+	
 	COMPONENT Control
 		PORT(Opcode: IN STD_LOGIC_VECTOR(2 DOWNTO 0); 
 			  ID_Flush: OUT STD_LOGIC;
@@ -97,8 +104,8 @@ PACKAGE components IS
 	COMPONENT Reg_ID_EX 
 		PORT(
 		Clk: IN STD_LOGIC;
-		D : IN STD_LOGIC_VECTOR(79 DOWNTO 0);
-		Q : OUT STD_LOGIC_VECTOR(79 DOWNTO 0));
+		D : IN STD_LOGIC_VECTOR(83 DOWNTO 0);
+		Q : OUT STD_LOGIC_VECTOR(83 DOWNTO 0));
 	END COMPONENT;
 	
 	COMPONENT Reg_EX_MEM
@@ -172,5 +179,13 @@ PACKAGE components IS
 		   Branch_Taken         : OUT STD_LOGIC
 			  );
 	END COMPONENT;
+	
+	COMPONENT regBank
+		PORT ( writeData                                : IN STD_LOGIC_VECTOR(15 DOWNTO 0);    -- dado que sera escrito
+			 readData1, readData2                        : OUT STD_LOGIC_VECTOR(15 DOWNTO 0);   -- dados lidos de rs e rt
+			 writeRegister, readRegister1, readRegister2 : IN STD_LOGIC_VECTOR(3 DOWNTO 0);     -- regWrite: sinal de escrita
+			 regWrite, clock                             : IN STD_LOGIC
+			);
+   END COMPONENT;
 	
 END components;
