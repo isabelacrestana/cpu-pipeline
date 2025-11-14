@@ -63,7 +63,26 @@ ARCHITECTURE behavior OF cpu IS
 	SIGNAL branch: STD_LOGIC; --sinal de controle para determinar se há uma instrucao de BEQ
 	SIGNAL branchTaken: STD_LOGIC; --sinal de controle para determinar se há uma instrucao de BEQ
 	
-	SIGNAL Id_Ex_Out: STD_LOGIC_VECTOR(79 DOWNTO 0); -- conteudo do reg IF/ID
+	SIGNAL Id_Ex_Out: STD_LOGIC_VECTOR(83 DOWNTO 0); -- conteudo do reg ID/EX
+	
+	
+	SIGNAL aluSrc_Out: STD_LOGIC_VECTOR(15 DOWNTO 0); -- output do mux alu src
+	SIGNAL MemtoReg_Out: STD_LOGIC_VECTOR(15 DOWNTO 0); -- output do mux MemtoReg
+	
+	SIGNAL Forward_A: STD_LOGIC_VECTOR(1 DOWNTO 0); -- sinal de controle do mux de forward A
+	SIGNAL Forward_B: STD_LOGIC_VECTOR(1 DOWNTO 0); -- sinal de controle do mux de forward B
+	
+	SIGNAL ALU_SrcA: STD_LOGIC_VECTOR(15 DOWNTO 0); -- Entrada A da ALU
+	SIGNAL ALU_SrcB: STD_LOGIC_VECTOR(15 DOWNTO 0); -- Entrada B da ALU
+	SIGNAL ALU_opcode: STD_LOGIC; -- Operação que a ALU irá fazer, 0(add) or 1(sub)
+	
+	SIGNAL Reg_Destiny: STD_LOGIC_VECTOR(3 DOWNTO 0); -- Registrador Destino(rt or rd)
+	
+	
+	SIGNAL Ex_Mem_Out: STD_LOGIC_VECTOR(39 DOWNTO 0); -- conteudo do reg EX/MEM
+	
+	
+	SIGNAL Mem_Wb_Out: STD_LOGIC_VECTOR(37 DOWNTO 0); -- conteudo do reg MEM/WB 
 BEGIN
 	
 	
@@ -125,23 +144,28 @@ BEGIN
 		MUX_ID_Flush: mux2to1_8bits PORT MAP(controlSignals, "00000000", ID_Flush, signalsOut);
 		
 		-- Reg ID/EX
-		Register_ID_EX: Reg_ID_EX PORT MAP(Clock, signalsOut & If_Id_Out(31 DOWNTO 16) & readData1 & readData2 & signExtend_Out & If_Id_Out(8 DOWNTO 5) & If_Id_Out(4 DOWNTO 1));
+		Register_ID_EX: Reg_ID_EX PORT MAP(Clock, signalsOut & If_Id_Out(31 DOWNTO 16) & readData1 & readData2 & signExtend_Out & If_Id_Out(12 DOWNTO 9) & If_Id_Out(8 DOWNTO 5) & If_Id_Out(4 DOWNTO 1), Id_Ex_Out);
 ------------------------------
 
 	-- 3° ESTÁGIO PIPELINE
 	
 		-- Mux AluSource
-	
+		MUX_ALU_Src: mux2to1 PORT MAP(Id_Ex_Out(39 DOWNTO 24), Id_Ex_Out(23 DOWNTO 8), Id_Ex_Out(73), aluSrc_Out);
+		
 		-- Mux Forward_A
-	
+		MUX_Forward_A: mux3to1 PORT MAP(Id_Ex_Out(55 DOWNTO 40), MemtoReg_Out, Ex_Mem_Out(35 DOWNTO 20), Forward_A, ALU_SrcA);
+		
 		-- Mux Forward_B
+		MUX_Forward_B: mux3to1 PORT MAP(alurSrc_Out, MemtoReg_Out, Ex_Mem_Out(35 DOWNTO 20), Forward_B, ALU_SrcB);
 		
 		-- Mux Reg_Dst
-
-		-- ALU_Control
-			
-		-- Forward Unity
+		MUX_Reg_Dst: mux2to1 PORT MAP(Id_Ex_Out(7 DOWNTO 4), Id_Ex_Out(3 DOWNTO 0), Id_Ex_Out(72), Reg_Destiny);
 		
+		-- ALU_Control
+		ALU_Controler: ALU_Control PORT MAP(Id_Ex_Out(8), Id_Ex_Out(75 DOWNTO 74), ALU_opcode);
+		
+		-- Forward Unity
+		Forward_Unity: Forward_Unit PORT MAP(Ex_Mem_Out(39), Mem_Wb_Out(37), Ex_Mem_Out(3 DOWNTO 0), Mem_Wb_Out(3 DOWNTO 0), Id_Ex_Out());
 		-- ALU
 		
 		-- Reg EX/MEM
