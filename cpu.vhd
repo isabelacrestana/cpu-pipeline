@@ -55,6 +55,8 @@ ARCHITECTURE behavior OF cpu IS
 	SIGNAL shiftLeftBranch_out: STD_LOGIC_VECTOR(15 DOWNTO 0); -- saida do shift left 1 para o branch
 	SIGNAL shiftLeftJump_Out: STD_LOGIC_VECTOR(13 DOWNTO 0); -- saida do shift left 1 para o jump
 	
+	SIGNAL branchAndBranchTaken: STD_LOGIC;
+	
 	SIGNAL ID_Flush: STD_LOGIC; -- sinal de flush para gerar uma bolha 
 	SIGNAL controlSignals: STD_LOGIC_VECTOR(7 DOWNTO 0); -- Sinais de controle
 	SIGNAL signalsOut: STD_LOGIC_VECTOR(7 DOWNTO 0); -- Saida dos sinais do MUX de ID_Flush
@@ -73,6 +75,7 @@ ARCHITECTURE behavior OF cpu IS
 	
 	SIGNAL ALU_SrcA: STD_LOGIC_VECTOR(15 DOWNTO 0); -- Entrada A da ALU
 	SIGNAL ALU_SrcB: STD_LOGIC_VECTOR(15 DOWNTO 0); -- Entrada B da ALU
+	
 	SIGNAL ALU_opcode: STD_LOGIC; -- Operação que a ALU irá fazer, 0(add) or 1(sub)
 	SIGNAL Alu_result: STD_LOGIC_VECTOR(15 DOWNTO 0); -- Resultado da ALU
 	
@@ -103,93 +106,103 @@ BEGIN
 	
 		-- Mux Jump
 		Mux_Jump : mux2to1 PORT MAP(pcSourceOut, jumpTarget, jump, pcDataIn);
-	
+			
 		-- Registrador IF/ID
 		Register_IF_ID : Reg_IF_ID PORT MAP(clock, pcPlus2Res & instruction, If_Id_Out, ifIdWrite, ifFlush);
+		
 		
 ------------------------------
 	
 	-- 2° ESTÁGIO PIPELINE
 	
+		writeData     <= MemtoReg_Out;
+		writeRegister <= Mem_Wb_Out(3 DOWNTO 0);
+		readRegister1 <= If_Id_Out(12 DOWNTO 9);
+		readRegister2 <= If_Id_Out( 8 DOWNTO 5);
+	
 		-- RegBank																																--reg write--
 		Reg_Bank: regBank PORT MAP(writeData, readData1, readData2, writeRegister, readRegister1, readRegister2, Mem_Wb_Out(37), clock);
-		
-		-- Branch Adder				  --------pc+2----------	
-		Branch_Adder: Adder PORT MAP(If_Id_Out(31 DOWNTO 16), shiftLeftBranch_out, branchTarget);
-		
-		-- ShiftLeft Branch
-		Shift_Left_Branch: shiftLeftBranch PORT MAP(signExtend_Out, shiftLeftBranch_out);
 		
 		-- Signal Extend
 		Signal_Extend: signalExtend PORT MAP(If_Id_Out(4 DOWNTO 0), signExtend_Out);
 		
+		-- ShiftLeft Branch
+		Shift_Left_Branch: shiftLeftBranch PORT MAP(signExtend_Out, shiftLeftBranch_out);
+		
+		-- Branch Adder				  --------pc+2----------	
+		Branch_Adder: Adder PORT MAP(If_Id_Out(31 DOWNTO 16), shiftLeftBranch_out, branchTarget);
+				
 		-- ShiftLeft Jump
 		Shift_Left_Jump: shiftLeftJump PORT MAP(If_Id_Out(12 DOWNTO 0), shiftLeftJump_Out);
 		
-		-- Jump Address Concatenation
+		-- Jump Address Concatenation 
+							-- 2 bits do pc+2 -- 
 		jumpTarget <= If_Id_Out(31 DOWNTO 30) & shiftLeftJump_Out;
 		
-		-- Control
+		-- Control                    -- opcode da instrucao --
 		Control_unit: Control PORT MAP(If_Id_Out(15 DOWNTO 13), ID_Flush, controlSignals, branch, jump);
 		
-		-- Hazard Detection Unit
-		HazardDetection_Unit: Hazard_Detection_Unit PORT MAP(If_Id_Out(12 DOWNTO 9), If_Id_Out(8 DOWNTO 5), Id_Ex_Out(7 DOWNTO 4),Id_Ex_Out(76), pcWrite, ifIdWrite);
+		-- Hazard Detection Unit                                    rs (est 2)         reg t (estagio 2)        rt (est 3)        MemRead (est 3) 
+		HazardDetection_Unit: Hazard_Detection_Unit PORT MAP(If_Id_Out(12 DOWNTO 9), If_Id_Out(8 DOWNTO 5), Id_Ex_Out(7 DOWNTO 4), Id_Ex_Out(76), pcWrite, ifIdWrite);
 		
-		-- Comparator (xnor)
+		-- Comparator (xnor) (branch)                    
 		Comparator_Hardware: comparator PORT MAP(readData1, readData2, branchTaken);
 		
 		-- Branch and BranchTaken
-		ifFlush <= branchTaken AND branch;
+		branchAndBranchTaken <= branchTaken AND branch;
 		
-		-- MUX ID Flush
+		ifFlush  <= branchAndBranchTaken;
+		pcSource <= branchAndBranchTaken;
+		
+		-- MUX ID Flush                                  -- para bublle --
 		MUX_ID_Flush: mux2to1_8bits PORT MAP(controlSignals, "00000000", ID_Flush, signalsOut);
 		
-		-- Reg ID/EX
+		-- Reg ID/EX                                                 -- pc+2 --                                                          -- rs --                -- rt --                 -- rd --
 		Register_ID_EX: Reg_ID_EX PORT MAP(Clock, signalsOut & If_Id_Out(31 DOWNTO 16) & readData1 & readData2 & signExtend_Out & If_Id_Out(12 DOWNTO 9) & If_Id_Out(8 DOWNTO 5) & If_Id_Out(4 DOWNTO 1), Id_Ex_Out);
 		
 ------------------------------
 
 	-- 3° ESTÁGIO PIPELINE
 	
-		-- Mux AluSource
+		-- Mux AluSource                 -- readData2 --          -- imed ext --        -- aluSrc --
 		MUX_ALU_Src: mux2to1 PORT MAP(Id_Ex_Out(43 DOWNTO 28), Id_Ex_Out(27 DOWNTO 12), Id_Ex_Out(77), aluSrc_Out);
 		
-		-- Mux Forward_A
+		-- Mux Forward_A                    readData1 (2 est)    dado do 5 est    Alu Result (4 est) 
 		MUX_Forward_A: mux3to1 PORT MAP(Id_Ex_Out(59 DOWNTO 44), MemtoReg_Out, Ex_Mem_Out(35 DOWNTO 20), Forward_A, ALU_SrcA);
 		
-		-- Mux Forward_B
-		MUX_Forward_B: mux3to1 PORT MAP(alurSrc_Out, MemtoReg_Out, Ex_Mem_Out(35 DOWNTO 20), Forward_B, ALU_SrcB);
+		-- Mux Forward_B               dado do 2 est  dado do 5 est      alu result (4 est)
+		MUX_Forward_B: mux3to1 PORT MAP(aluSrc_Out,  MemtoReg_Out,  Ex_Mem_Out(35 DOWNTO 20), Forward_B, ALU_SrcB);
 		
-		-- Mux Reg_Dst
-		MUX_Reg_Dst: mux2to1 PORT MAP(Id_Ex_Out(7 DOWNTO 4), Id_Ex_Out(3 DOWNTO 0), Id_Ex_Out(76), Reg_Destiny);
+		-- Mux Reg_Dst                    -- rt --                 -- rd --         -- regDst -- 
+		MUX_Reg_Dst: mux2to1_4bits PORT MAP(Id_Ex_Out(7 DOWNTO 4), Id_Ex_Out(3 DOWNTO 0), Id_Ex_Out(76), Reg_Destiny);
 		
-		-- ALU_Control
+		-- ALU_Control                     -- function --         -- AluOp --         
 		ALU_Controler: ALU_Control PORT MAP(Id_Ex_Out(12), Id_Ex_Out(79 DOWNTO 78), ALU_opcode);
 		
-		-- Forward Unity
-		Forward_Unity: Forward_Unit PORT MAP(Ex_Mem_Out(39), Mem_Wb_Out(37), Ex_Mem_Out(3 DOWNTO 0), Mem_Wb_Out(3 DOWNTO 0), Id_Ex_Out(11 DOWNTO 8), Id_Ex_Out(7 DOWNTO 4), Forward_A, Forward_B);
+		-- Forward Unity                     -- regWrite --  -- memWrite --      -- rtOrRdNum --       -- rtOrRdNum--               -- rs --               -- rt --  
+		Forward_Unity: Forward_Unit PORT MAP(Ex_Mem_Out(39),  Mem_Wb_Out(37), Ex_Mem_Out(3 DOWNTO 0), Mem_Wb_Out(3 DOWNTO 0), Id_Ex_Out(11 DOWNTO 8), Id_Ex_Out(7 DOWNTO 4), Forward_A, Forward_B);
 		
-		-- ALU
+		-- ALU 
 		ULA: alu PORT MAP(ALU_SrcA, ALU_SrcB, ALU_opcode, Alu_result);
 		
-		-- Reg EX/MEM
+		-- Reg EX/MEM                                  -- sinais de WB --                                       
 		Register_EX_MEM: Reg_Ex_Mem PORT MAP(clock, iD_Ex_Out(83 DOWNTO 80) & Alu_result & Alu_SrcB & Reg_Destiny, Ex_Mem_Out);
 		
 ------------------------------
 		
 	-- 4° ESTÁGIO PIPELINE
 	
-		-- Data Memory
+		-- Data Memory                      -- Alu_B --                         -- AluResult  --        -- memWrite --   -- memRead --                 
 		Data_Memory: dataMemory PORT MAP(Ex_Mem_Out(19 DOWNTO 4), readDataMem, Ex_Mem_Out(35 DOWNTO 20), Ex_Mem_Out(37), Ex_Mem_Out(36), clock);
-		
-		-- Reg MEM/WB
+		 
+		-- Reg MEM/WB                                -- WB signals --                           -- AluResult --           -- rtOrRdNum --
 		Register_MEM_WB: Reg_MEM_WB PORT MAP(clock, Ex_Mem_Out(39 DOWNTO 38) & readDataMem & Ex_Mem_Out(35 DOWNTO 20) & Ex_Mem_Out(3 DOWNTO 0), Mem_Wb_Out);
 		
 ------------------------------
 
 	-- 5° ESTÁGIO PIPELINE
 	
-		-- Mux MemToReg
+		-- Mux MemToReg                    -- AluResult --           -- memData --        -- memToReg --
 		Mux_MemtoReg: mux2to1 PORT MAP(Mem_Wb_Out(19 DOWNTO 4), Mem_Wb_Out(35 DOWNTO 20), Mem_Wb_Out(36), MemtoReg_Out);
 		
 		
