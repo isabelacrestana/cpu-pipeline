@@ -49,7 +49,6 @@ ARCHITECTURE behavior OF cpu IS
 	SIGNAL writeRegister: STD_LOGIC_VECTOR(3 DOWNTO 0); -- registrador que sera escrito o dado
 	SIGNAL readRegister1: STD_LOGIC_VECTOR(3 DOWNTO 0); -- registrador que sera lido o dado 1
 	SIGNAL readRegister2: STD_LOGIC_VECTOR(3 DOWNTO 0); -- registrador que sera lido o dado 2
-	SIGNAL regWrite: STD_LOGIC; -- sinal de escrita no regBank
 
 	SIGNAL signExtend_Out: STD_LOGIC_VECTOR(15 DOWNTO 0); -- saida do Sign Extend
 	
@@ -112,10 +111,10 @@ BEGIN
 	
 	-- 2° ESTÁGIO PIPELINE
 	
-		-- RegBank
-		Reg_Bank: regBank PORT MAP(writeData, readData1, readData2, writeRegister, readRegister1, readRegister2, regWrite, clock);
+		-- RegBank																																--reg write--
+		Reg_Bank: regBank PORT MAP(writeData, readData1, readData2, writeRegister, readRegister1, readRegister2, Mem_Wb_Out(37), clock);
 		
-		-- Branch Adder
+		-- Branch Adder				  --------pc+2----------	
 		Branch_Adder: Adder PORT MAP(If_Id_Out(31 DOWNTO 16), shiftLeftBranch_out, branchTarget);
 		
 		-- ShiftLeft Branch
@@ -174,21 +173,24 @@ BEGIN
 		ULA: alu PORT MAP(ALU_SrcA, ALU_SrcB, ALU_opcode, Alu_result);
 		
 		-- Reg EX/MEM
-		Register_EX_MEM: Reg_Ex_Mem PORT MAP(Clock, iD_Ex_Out(83 DOWNTO 80) & Alu_result & Alu_SrcB & Reg_Destiny, Ex_Mem_Out);
+		Register_EX_MEM: Reg_Ex_Mem PORT MAP(clock, iD_Ex_Out(83 DOWNTO 80) & Alu_result & Alu_SrcB & Reg_Destiny, Ex_Mem_Out);
 		
 ------------------------------
 		
 	-- 4° ESTÁGIO PIPELINE
 	
 		-- Data Memory
-		Data_Memory: dataMemory PORT MAP(Ex_Mem_Out(19 DOWNTO 4), readDataMem, Ex_Mem_Out(35 DOWNTO 20), Ex_Mem_Out(37), Ex_Mem_Out(36), Clock);
+		Data_Memory: dataMemory PORT MAP(Ex_Mem_Out(19 DOWNTO 4), readDataMem, Ex_Mem_Out(35 DOWNTO 20), Ex_Mem_Out(37), Ex_Mem_Out(36), clock);
+		
+		-- Reg MEM/WB
+		Register_MEM_WB: Reg_MEM_WB PORT MAP(clock, Ex_Mem_Out(39 DOWNTO 38) & readDataMem & Ex_Mem_Out(35 DOWNTO 20) & Ex_Mem_Out(3 DOWNTO 0), Mem_Wb_Out);
 		
 ------------------------------
 
 	-- 5° ESTÁGIO PIPELINE
 	
 		-- Mux MemToReg
-		
+		Mux_MemtoReg: mux2to1 PORT MAP(Mem_Wb_Out(19 DOWNTO 4), Mem_Wb_Out(35 DOWNTO 20), Mem_Wb_Out(36), MemtoReg_Out);
 		
 		
 ----- ALTERANDO FREQUENCIA DO CLOCK --------
