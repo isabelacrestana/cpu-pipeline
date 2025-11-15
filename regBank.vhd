@@ -7,7 +7,8 @@ ENTITY regBank IS
 	PORT ( writeData                                   : IN STD_LOGIC_VECTOR(15 DOWNTO 0);    -- dado que sera escrito
 			 readData1, readData2                        : OUT STD_LOGIC_VECTOR(15 DOWNTO 0);   -- dados lidos de rs e rt
 			 writeRegister, readRegister1, readRegister2 : IN STD_LOGIC_VECTOR(3 DOWNTO 0);     -- regWrite: sinal de escrita
-			 regWrite, clock                             : IN STD_LOGIC
+			 regWrite, clock                             : IN STD_LOGIC;
+			 reg0, reg1, reg2, reg3                      : OUT STD_LOGIC_VECTOR(3 DOWNTO 0)
 			);
 END regBank;
 
@@ -57,6 +58,34 @@ BEGIN
 	buffer14: bufferTriState PORT MAP(regsDataIn(13), regsOut1(13) OR regsOut2(13), regsDataOut(13));
 	buffer15: bufferTriState PORT MAP(regsDataIn(14), regsOut1(14) OR regsOut2(14), regsDataOut(14));
 	buffer16: bufferTriState PORT MAP(regsDataIn(15), regsOut1(15) OR regsOut2(15), regsDataOut(15));
+	
+	
+	PROCESS(regsDataIn, reg0, reg1, reg2, reg3)
+	BEGIN
+		IF unsigned(regsDataIn(0)) < 16 THEN
+			reg0 <= regsDataIn(0)(3 DOWNTO 0);
+		ELSE
+			reg0 <= "0000";
+		END IF;
+		
+		IF unsigned(regsDataIn(1)) < 16 THEN
+			reg1 <= regsDataIn(1)(3 DOWNTO 0);
+		ELSE
+			reg1 <= "0000";
+		END IF;
+		
+		IF unsigned(regsDataIn(2)) < 16 THEN
+			reg2 <= regsDataIn(2)(3 DOWNTO 0);
+		ELSE
+			reg2 <= "0000";
+		END IF;
+		
+		IF unsigned(regsDataIn(3)) < 16 THEN
+			reg3 <= regsDataIn(3)(3 DOWNTO 0);
+		ELSE
+			reg3<= "0000";
+		END IF;
+	END PROCESS;
 	
 	
 	PROCESS(clocK)
