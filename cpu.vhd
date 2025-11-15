@@ -3,35 +3,38 @@ USE ieee.std_logic_1164.all;
 USE work.components.all;
 
 ENTITY cpu IS
-	PORT (Clock_50 : IN STD_LOGIC;
-		  -- mapear os 3 displays 7 segs para os regs 1, 2 e 3
-		  -- mapear display 7 segs do PC
+	PORT (clock : IN STD_LOGIC;
+  
+			HEX3, HEX2, HEX1, HEX0 : OUT STD_LOGIC_VECTOR(0 TO 6);
 		  
-			KEY : IN STD_LOGIC_VECTOR(1 DOWNTO 0)    -- posicao 0 = ENABLE  
+			KEY : IN STD_LOGIC_VECTOR(1 DOWNTO 0);    -- posicao 0 = ENABLE  
+			LEDR : OUT STD_LOGIC_VECTOR(1 DOWNTO 0) -- 0: adiantamento forward unit, 1: harzard de load
 
 		  );
 END cpu;
 
 ARCHITECTURE behavior OF cpu IS
 
+	SIGNAL r0, r1, r2, r3 : STD_LOGIC_VECTOR(3 DOWNTO 0);
+	
 	-- mudanca na frequencia do clock
 	
 	CONSTANT max: INTEGER := 50000000;			-- Ciclo do clock (é ajustável)
 	CONSTANT half: INTEGER := max/2;				-- Meio Ciclo
 	SIGNAL clockticks: INTEGER RANGE 0 TO max;-- Conta cada ciclo do clock de entrada
-	SIGNAL clock: STD_LOGIC;	
+	--SIGNAL clock: STD_LOGIC;	
 
 	-- sinais internos	
 	
-	SIGNAL pcDataIn : STD_LOGIC_VECTOR(15 DOWNTO 0);  -- dado que entra no PC
-	SIGNAL pcDataOut : STD_LOGIC_VECTOR(15 DOWNTO 0); -- dado que sai do PC
-	SIGNAL pcWrite : STD_LOGIC; -- sinal para habilitar escrita no PC
+	SIGNAL pcDataIn : STD_LOGIC_VECTOR(15 DOWNTO 0) := "0000000000000000";  -- dado que entra no PC
+	SIGNAL pcDataOut : STD_LOGIC_VECTOR(15 DOWNTO 0) := "0000000000000000"; -- dado que sai do PC
+	SIGNAL pcWrite : STD_LOGIC := '0'; -- sinal para habilitar escrita no PC
 	
 	SIGNAL instruction : STD_LOGIC_VECTOR(15 DOWNTO 0);   -- saída da memoria de inst (depois do fetch)
-	SIGNAL pcPlus2Res : STD_LOGIC_VECTOR(15 DOWNTO 0);    -- PC já incrementado (saída do somador)
+	SIGNAL pcPlus2Res : STD_LOGIC_VECTOR(15 DOWNTO 0) := "0000000000000000";    -- PC já incrementado (saída do somador)
 	
 	SIGNAL branchTarget : STD_LOGIC_VECTOR(15 DOWNTO 0); -- endereco do salto do branch
-	SIGNAL pcSource : STD_LOGIC; -- sinal de controle do mux PC Source
+	SIGNAL pcSource : STD_LOGIC := '0'; -- sinal de controle do mux PC Source
 	SIGNAL pcSourceOut : STD_LOGIC_VECTOR(15 DOWNTO 0); -- saída do mux PC Source
 	
 	SIGNAL jumpTarget : STD_LOGIC_VECTOR(15 DOWNTO 0); -- endereco de salto do jump
@@ -88,6 +91,24 @@ ARCHITECTURE behavior OF cpu IS
 	
 	SIGNAL Mem_Wb_Out: STD_LOGIC_VECTOR(37 DOWNTO 0); -- conteudo do reg MEM/WB 
 BEGIN
+
+	hex_r0: sevenSegs PORT MAP(r0, HEX3); 
+	hex_r1: sevenSegs PORT MAP(r1, HEX2); 
+	hex_r2: sevenSegs PORT MAP(r2, HEX1); 
+	hex_r3: sevenSegs PORT MAP(r3, HEX0); 	
+	
+	-- 1 caso haja adiantamento
+	PROCESS(Forward_A, Forward_B) 
+	BEGIN
+		IF (Forward_A = "10") OR (Forward_B = "10") THEN
+			LEDR(0) <= '1';
+		ELSE
+			LEDR(0) <= '0';
+		END IF;
+	END PROCESS;
+	
+	-- 1 caso tenha stall
+	LEDR(1) <= NOT pcWrite;
 	
 	
 	-- 1° ESTÁGIO PIPELINE
@@ -121,7 +142,7 @@ BEGIN
 		readRegister2 <= If_Id_Out( 8 DOWNTO 5);
 	
 		-- RegBank																																--reg write--
-		Reg_Bank: regBank PORT MAP(writeData, readData1, readData2, writeRegister, readRegister1, readRegister2, Mem_Wb_Out(37), clock);
+		Reg_Bank: regBank PORT MAP(writeData, readData1, readData2, writeRegister, readRegister1, readRegister2, Mem_Wb_Out(37), clock, r0, r1, r2, r3);
 		
 		-- Signal Extend
 		Signal_Extend: signalExtend PORT MAP(If_Id_Out(4 DOWNTO 0), signExtend_Out);
@@ -207,20 +228,20 @@ BEGIN
 		
 		
 ----- ALTERANDO FREQUENCIA DO CLOCK --------
-	ClockDivide: PROCESS
-	BEGIN
-		WAIT UNTIL Clock_50'EVENT and Clock_50 = '1';
-		IF clockticks < max THEN
-			 clockticks <= clockticks + 1;
-		ELSE
-			 clockticks <= 0;
-		END IF;
-		IF clockticks < half THEN
-			 clock <= '0';
-		ELSE
-			 clock <= '1';
-		END IF;
-  END PROCESS;
+	--ClockDivide: PROCESS
+	--BEGIN
+	----	WAIT UNTIL Clock_50'EVENT and Clock_50 = '1';
+	--	IF clockticks < max THEN
+	--		 clockticks <= clockticks + 1;
+	--	ELSE
+	--		 clockticks <= 0;
+	--	END IF;
+	--	IF clockticks < half THEN
+	--		 clock <= '0';
+	--	ELSE
+	--		 clock <= '1';
+	--	END IF;
+ -- END PROCESS;
 
 
 END behavior;
