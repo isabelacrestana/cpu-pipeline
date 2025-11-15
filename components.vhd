@@ -188,11 +188,19 @@ PACKAGE components IS
 	END COMPONENT;
 	
 	COMPONENT regBank
-		PORT ( writeData                                : IN STD_LOGIC_VECTOR(15 DOWNTO 0);    -- dado que sera escrito
-			 readData1, readData2                        : OUT STD_LOGIC_VECTOR(15 DOWNTO 0);   -- dados lidos de rs e rt
-			 writeRegister, readRegister1, readRegister2 : IN STD_LOGIC_VECTOR(3 DOWNTO 0);     -- regWrite: sinal de escrita
-			 regWrite, clock                             : IN STD_LOGIC
+		PORT ( writeData                                   : IN STD_LOGIC_VECTOR(15 DOWNTO 0);    -- dado que sera escrito
+			 readData1, readData2                           : OUT STD_LOGIC_VECTOR(15 DOWNTO 0);   -- dados lidos de rs e rt
+			 writeRegister, readRegister1, readRegister2    : IN STD_LOGIC_VECTOR(3 DOWNTO 0);     -- regWrite: sinal de escrita
+			 regWrite, clock                                : IN STD_LOGIC;
+			 reg0, reg1, reg2, reg3                         : OUT STD_LOGIC_VECTOR(3 DOWNTO 0)
 			);
    END COMPONENT;
+	
+	COMPONENT sevenSegs 
+		PORT (SW : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+				HEX : OUT STD_LOGIC_VECTOR(0 TO 6)
+			  );
+	END COMPONENT;
+
 	
 END components;
