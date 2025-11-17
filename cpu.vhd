@@ -100,7 +100,7 @@ BEGIN
 	-- 1 caso haja adiantamento
 	PROCESS(Forward_A, Forward_B) 
 	BEGIN
-		IF (Forward_A = "10") OR (Forward_B = "10") THEN
+		IF (Forward_A = "10") OR (Forward_B = "10") OR (Forward_A = "01") OR (Forward_B = "01")THEN
 			LEDR(0) <= '1';
 		ELSE
 			LEDR(0) <= '0';
