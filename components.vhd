@@ -3,12 +3,11 @@ USE ieee.std_logic_1164.all;
 
 PACKAGE components IS
 
-	COMPONENT register16bits
+	COMPONENT register16bits IS
 		PORT (D                  : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
-				Clock, Rin         : IN STD_LOGIC;
+				Clock, Rin, Reset  : IN STD_LOGIC;
 				Q                  : OUT STD_LOGIC_VECTOR(15 DOWNTO 0));
 	END COMPONENT;	
-	
 	
 	COMPONENT PCReg
 		PORT (D                  : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
@@ -196,12 +195,12 @@ PACKAGE components IS
 	
 	COMPONENT regBank
 		PORT ( writeData                                   : IN STD_LOGIC_VECTOR(15 DOWNTO 0);    -- dado que sera escrito
-			 readData1, readData2                           : OUT STD_LOGIC_VECTOR(15 DOWNTO 0);   -- dados lidos de rs e rt
-			 writeRegister, readRegister1, readRegister2    : IN STD_LOGIC_VECTOR(3 DOWNTO 0);     -- regWrite: sinal de escrita
-			 regWrite, clock                                : IN STD_LOGIC;
-			 reg0, reg1, reg2, reg3                         : OUT STD_LOGIC_VECTOR(3 DOWNTO 0)
-			);
-   END COMPONENT;
+				 readData1, readData2                        : OUT STD_LOGIC_VECTOR(15 DOWNTO 0);   -- dados lidos de rs e rt
+				 writeRegister, readRegister1, readRegister2 : IN STD_LOGIC_VECTOR(3 DOWNTO 0);     -- regWrite: sinal de escrita
+				 regWrite, clock, reset                      : IN STD_LOGIC;
+				 reg0, reg1, reg2, reg3                      : OUT STD_LOGIC_VECTOR(3 DOWNTO 0)
+				);
+	END COMPONENT;
 	
 	COMPONENT sevenSegs 
 		PORT (SW : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
