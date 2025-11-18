@@ -60,7 +60,9 @@ ARCHITECTURE behavior OF cpu IS
 	
 	SIGNAL branchAndBranchTaken: STD_LOGIC;
 	
-	SIGNAL ID_Flush: STD_LOGIC; -- sinal de flush para gerar uma bolha 
+	SIGNAL flush_hazard_detec: STD_LOGIC; -- Sinal de flush caso haja hazard com load
+	SIGNAL ID_Flush: STD_LOGIC; -- sinal de flush para instrução NOP 
+	SIGNAL Flush: STD_LOGIC; -- sinal de flush apos o OR que entra no MUX de flush
 	SIGNAL controlSignals: STD_LOGIC_VECTOR(7 DOWNTO 0); -- Sinais de controle
 	SIGNAL signalsOut: STD_LOGIC_VECTOR(7 DOWNTO 0); -- Saida dos sinais do MUX de ID_Flush
 	
@@ -164,7 +166,7 @@ BEGIN
 		Control_unit: Control PORT MAP(If_Id_Out(15 DOWNTO 13), ID_Flush, controlSignals, branch, jump);
 		
 		-- Hazard Detection Unit                                    rs (est 2)         reg t (estagio 2)        rt (est 3)        MemRead (est 3) 
-		HazardDetection_Unit: Hazard_Detection_Unit PORT MAP(If_Id_Out(12 DOWNTO 9), If_Id_Out(8 DOWNTO 5), Id_Ex_Out(7 DOWNTO 4), Id_Ex_Out(76), pcWrite, ifIdWrite);
+		HazardDetection_Unit: Hazard_Detection_Unit PORT MAP(If_Id_Out(12 DOWNTO 9), If_Id_Out(8 DOWNTO 5), Id_Ex_Out(7 DOWNTO 4), Id_Ex_Out(76), flush_hazard_detec, pcWrite, ifIdWrite);
 		
 		-- Comparator (xnor) (branch)                    
 		Comparator_Hardware: comparator PORT MAP(readData1, readData2, branchTaken);
@@ -175,8 +177,11 @@ BEGIN
 		ifFlush  <= branchAndBranchTaken;
 		pcSource <= branchAndBranchTaken;
 		
+		-- ID_Flush OR flush_hazard_detec
+		Flush <= ID_Flush OR flush_hazard_detec;
+		
 		-- MUX ID Flush                                  -- para bublle --
-		MUX_ID_Flush: mux2to1_8bits PORT MAP(controlSignals, "00000000", ID_Flush, signalsOut);
+		MUX_ID_Flush: mux2to1_8bits PORT MAP(controlSignals, "00000000", Flush, signalsOut);
 		
 		-- Reg ID/EX                                                 -- pc+2 --                                                          -- rs --                -- rt --                 -- rd --
 		Register_ID_EX: Reg_ID_EX PORT MAP(Clock, signalsOut & If_Id_Out(31 DOWNTO 16) & readData1 & readData2 & signExtend_Out & If_Id_Out(12 DOWNTO 9) & If_Id_Out(8 DOWNTO 5) & If_Id_Out(4 DOWNTO 1), Id_Ex_Out);
