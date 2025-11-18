@@ -12,16 +12,16 @@ ENTITY Hazard_Detection_Unit IS
 
 END Hazard_Detection_Unit;
 
-		 BEGIN
-			PC_Write <= '1';
-			IF_ID_Write <= '1';
+		 
 ARCHITECTURE load_detection OF Hazard_Detection_Unit IS
 
 	BEGIN
 		
 		
 		PROCESS(IF_ID_Rs, IF_ID_Rt, ID_EX_Rt, ID_EX_MemRead)
-			
+		BEGIN
+			PC_Write <= '1';
+			IF_ID_Write <= '1';
 			IF (ID_EX_MemRead = '1') AND 
            ((ID_EX_Rt = IF_ID_Rs) OR (ID_EX_Rt = IF_ID_Rt)) THEN
 				
