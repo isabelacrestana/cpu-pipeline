@@ -3,14 +3,12 @@ USE ieee.std_logic_1164.all;
 USE work.components.all;
 
 ENTITY cpu IS
-	PORT (clock : IN STD_LOGIC;
+	PORT (Clock_50 : IN STD_LOGIC;
   
 			HEX5, HEX3, HEX2, HEX1, HEX0 : OUT STD_LOGIC_VECTOR(0 TO 6);
-			
-			pcReset: IN STD_LOGIC;
-		  
-			KEY : IN STD_LOGIC_VECTOR(1 DOWNTO 0);    -- posicao 0 = ENABLE  
-			LEDR : OUT STD_LOGIC_VECTOR(1 DOWNTO 0) -- 0: adiantamento forward unit, 1: harzard de load
+					  
+			KEY  : IN STD_LOGIC_VECTOR(2 DOWNTO 0);    -- posicao 0 = ENABLE  
+			LEDR : OUT STD_LOGIC_VECTOR(2 DOWNTO 0) -- 0: adiantamento forward unit, 1: harzard de load
 
 		  );
 END cpu;
@@ -21,10 +19,10 @@ ARCHITECTURE behavior OF cpu IS
 	
 	-- mudanca na frequencia do clock
 	
-	CONSTANT max: INTEGER := 500000000;			-- Ciclo do clock (é ajustável)
+	CONSTANT max: INTEGER := 50000000;			-- Ciclo do clock (é ajustável)
 	CONSTANT half: INTEGER := max/2;				-- Meio Ciclo
 	SIGNAL clockticks: INTEGER RANGE 0 TO max;-- Conta cada ciclo do clock de entrada
-	--SIGNAL clock: STD_LOGIC;	
+	SIGNAL clock: STD_LOGIC;	
 
 	-- sinais internos	
 	SIGNAL pcDataIn : STD_LOGIC_VECTOR(15 DOWNTO 0);  -- dado que entra no PC
@@ -96,11 +94,13 @@ ARCHITECTURE behavior OF cpu IS
 BEGIN
 
 
-	hex_pc: sevenSegs PORT MAP(pcDataOut, HEX5);
+	hex_pc: sevenSegs PORT MAP(pcDataOut(3 DOWNTO 0), HEX5);
 	hex_r0: sevenSegs PORT MAP(r0, HEX3); 
 	hex_r1: sevenSegs PORT MAP(r1, HEX2); 
 	hex_r2: sevenSegs PORT MAP(r2, HEX1); 
 	hex_r3: sevenSegs PORT MAP(r3, HEX0); 	
+	
+	LEDR(2) <= clock;
 	
 	-- 1 caso haja adiantamento
 	PROCESS(Forward_A, Forward_B) 
@@ -120,7 +120,7 @@ BEGIN
 	-- 1° ESTÁGIO PIPELINE
 	
 		-- PC
-		PC: PCReg PORT MAP(pcDataIn, clock, pcWrite, pcReset, pcDataOut);
+		PC: PCReg PORT MAP(pcDataIn, clock, pcWrite, NOT KEY(0), pcDataOut);
 	
 		-- Memoria de Instrucoes
 		Instuction_Memory: instructionMemory PORT MAP(pcDataOut, instruction, clock);
@@ -148,7 +148,7 @@ BEGIN
 		readRegister2 <= If_Id_Out( 8 DOWNTO 5);
 	
 		-- RegBank																																--reg write--
-		Reg_Bank: regBank PORT MAP(writeData, readData1, readData2, writeRegister, readRegister1, readRegister2, Mem_Wb_Out(37), clock, r0, r1, r2, r3);
+		Reg_Bank: regBank PORT MAP(writeData, readData1, readData2, writeRegister, readRegister1, readRegister2, Mem_Wb_Out(37), clock, NOT KEY(2), r0, r1, r2, r3);
 		
 		-- Signal Extend
 		Signal_Extend: signalExtend PORT MAP(If_Id_Out(4 DOWNTO 0), signExtend_Out);
@@ -237,20 +237,20 @@ BEGIN
 		
 		
 ----- ALTERANDO FREQUENCIA DO CLOCK --------
-	--ClockDivide: PROCESS
-	--BEGIN
-	----	WAIT UNTIL Clock_50'EVENT and Clock_50 = '1';
-	--	IF clockticks < max THEN
-	--		 clockticks <= clockticks + 1;
-	--	ELSE
-	--		 clockticks <= 0;
-	--	END IF;
-	--	IF clockticks < half THEN
-	--		 clock <= '0';
-	--	ELSE
-	--		 clock <= '1';
-	--	END IF;
- -- END PROCESS;
+	ClockDivide: PROCESS
+	BEGIN
+		WAIT UNTIL Clock_50'EVENT and Clock_50 = '1';
+		IF clockticks < max THEN
+			 clockticks <= clockticks + 1;
+		ELSE
+			 clockticks <= 0;
+		END IF;
+		IF clockticks < half THEN
+			 clock <= '0';
+		ELSE
+			 clock <= '1';
+		END IF;
+  END PROCESS;
 
 
 END behavior;
