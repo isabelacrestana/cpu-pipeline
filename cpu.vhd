@@ -5,7 +5,9 @@ USE work.components.all;
 ENTITY cpu IS
 	PORT (clock : IN STD_LOGIC;
   
-			HEX3, HEX2, HEX1, HEX0 : OUT STD_LOGIC_VECTOR(0 TO 6);
+			HEX5, HEX3, HEX2, HEX1, HEX0 : OUT STD_LOGIC_VECTOR(0 TO 6);
+			
+			pcReset: IN STD_LOGIC;
 		  
 			KEY : IN STD_LOGIC_VECTOR(1 DOWNTO 0);    -- posicao 0 = ENABLE  
 			LEDR : OUT STD_LOGIC_VECTOR(1 DOWNTO 0) -- 0: adiantamento forward unit, 1: harzard de load
@@ -19,19 +21,18 @@ ARCHITECTURE behavior OF cpu IS
 	
 	-- mudanca na frequencia do clock
 	
-	CONSTANT max: INTEGER := 50000000;			-- Ciclo do clock (é ajustável)
+	CONSTANT max: INTEGER := 500000000;			-- Ciclo do clock (é ajustável)
 	CONSTANT half: INTEGER := max/2;				-- Meio Ciclo
 	SIGNAL clockticks: INTEGER RANGE 0 TO max;-- Conta cada ciclo do clock de entrada
 	--SIGNAL clock: STD_LOGIC;	
 
 	-- sinais internos	
-	
-	SIGNAL pcDataIn : STD_LOGIC_VECTOR(15 DOWNTO 0) := "0000000000000000";  -- dado que entra no PC
-	SIGNAL pcDataOut : STD_LOGIC_VECTOR(15 DOWNTO 0) := "0000000000000000"; -- dado que sai do PC
+	SIGNAL pcDataIn : STD_LOGIC_VECTOR(15 DOWNTO 0);  -- dado que entra no PC
+	SIGNAL pcDataOut : STD_LOGIC_VECTOR(15 DOWNTO 0); -- dado que sai do PC
 	SIGNAL pcWrite : STD_LOGIC := '0'; -- sinal para habilitar escrita no PC
 	
 	SIGNAL instruction : STD_LOGIC_VECTOR(15 DOWNTO 0);   -- saída da memoria de inst (depois do fetch)
-	SIGNAL pcPlus2Res : STD_LOGIC_VECTOR(15 DOWNTO 0) := "0000000000000000";    -- PC já incrementado (saída do somador)
+	SIGNAL pcPlus2Res : STD_LOGIC_VECTOR(15 DOWNTO 0);    -- PC já incrementado (saída do somador)
 	
 	SIGNAL branchTarget : STD_LOGIC_VECTOR(15 DOWNTO 0); -- endereco do salto do branch
 	SIGNAL pcSource : STD_LOGIC := '0'; -- sinal de controle do mux PC Source
@@ -92,6 +93,8 @@ ARCHITECTURE behavior OF cpu IS
 	SIGNAL Mem_Wb_Out: STD_LOGIC_VECTOR(37 DOWNTO 0); -- conteudo do reg MEM/WB 
 BEGIN
 
+
+	hex_pc: sevenSegs PORT MAP(pcDataOut, HEX5);
 	hex_r0: sevenSegs PORT MAP(r0, HEX3); 
 	hex_r1: sevenSegs PORT MAP(r1, HEX2); 
 	hex_r2: sevenSegs PORT MAP(r2, HEX1); 
@@ -109,12 +112,13 @@ BEGIN
 	
 	-- 1 caso tenha stall
 	LEDR(1) <= NOT pcWrite;
+
 	
 	
 	-- 1° ESTÁGIO PIPELINE
 	
 		-- PC
-		PC: register16bits PORT MAP(pcDataIn, clock, pcWrite, pcDataOut);
+		PC: PCReg PORT MAP(pcDataIn, clock, pcWrite, pcReset, pcDataOut);
 	
 		-- Memoria de Instrucoes
 		Instuction_Memory: instructionMemory PORT MAP(pcDataOut, instruction, clock);

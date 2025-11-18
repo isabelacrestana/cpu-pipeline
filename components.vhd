@@ -9,6 +9,13 @@ PACKAGE components IS
 				Q                  : OUT STD_LOGIC_VECTOR(15 DOWNTO 0));
 	END COMPONENT;	
 	
+	
+	COMPONENT PCReg
+		PORT (D                  : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
+				Clock, Rin, Reset  : IN STD_LOGIC;
+				Q                  : OUT STD_LOGIC_VECTOR(15 DOWNTO 0));
+	END COMPONENT;
+	
 	COMPONENT fullAdder 
 		PORT (cin:  IN STD_LOGIC;
 				a, b: IN STD_LOGIC;
