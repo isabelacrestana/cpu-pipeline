@@ -5,7 +5,7 @@ USE work.components.all;
 ENTITY cpu IS
 	PORT (Clock_50 : IN STD_LOGIC;
   
-			HEX5, HEX3, HEX2, HEX1, HEX0 : OUT STD_LOGIC_VECTOR(0 TO 6);
+			HEX7, HEX6, HEX5, HEX3, HEX2, HEX1, HEX0 : OUT STD_LOGIC_VECTOR(0 TO 6);
 					  
 			KEY  : IN STD_LOGIC_VECTOR(2 DOWNTO 0);    -- posicao 0 = ENABLE  
 			LEDR : OUT STD_LOGIC_VECTOR(2 DOWNTO 0) -- 0: adiantamento forward unit, 1: harzard de load
@@ -19,7 +19,7 @@ ARCHITECTURE behavior OF cpu IS
 	
 	-- mudanca na frequencia do clock
 	
-	CONSTANT max: INTEGER := 50000000;			-- Ciclo do clock (é ajustável)
+	CONSTANT max: INTEGER := 100000000;			-- Ciclo do clock (é ajustável)
 	CONSTANT half: INTEGER := max/2;				-- Meio Ciclo
 	SIGNAL clockticks: INTEGER RANGE 0 TO max;-- Conta cada ciclo do clock de entrada
 	SIGNAL clock: STD_LOGIC;	
@@ -91,6 +91,7 @@ ARCHITECTURE behavior OF cpu IS
 	SIGNAL readDataMem: STD_LOGIC_VECTOR(15 DOWNTO 0); -- conteudo lido da memoria de dados
 	
 	SIGNAL Mem_Wb_Out: STD_LOGIC_VECTOR(37 DOWNTO 0); -- conteudo do reg MEM/WB 
+	SIGNAL address_out:  STD_LOGIC_VECTOR(15 DOWNTO 0);
 BEGIN
 
 
@@ -100,6 +101,9 @@ BEGIN
 	hex_r2: sevenSegs PORT MAP(r2, HEX1); 
 	hex_r3: sevenSegs PORT MAP(r3, HEX0); 	
 	
+	hex_MemtoReg_Out: sevenSegs PORT MAP( ALU_SrcB(3 DOWNTO 0), HEX7);
+	hex_debug: sevenSegs PORT MAP(Ex_Mem_Out(7 DOWNTO 4), HEX6);
+
 	LEDR(2) <= clock;
 	
 	-- 1 caso haja adiantamento
@@ -223,7 +227,7 @@ BEGIN
 	-- 4° ESTÁGIO PIPELINE
 	
 		-- Data Memory                      -- Alu_B --                         -- AluResult  --        -- memWrite --   -- memRead --                 
-		Data_Memory: dataMemory PORT MAP(Ex_Mem_Out(19 DOWNTO 4), readDataMem, Ex_Mem_Out(35 DOWNTO 20), Ex_Mem_Out(37), Ex_Mem_Out(36), clock);
+		Data_Memory: dataMemory PORT MAP(Ex_Mem_Out(19 DOWNTO 4), readDataMem, Ex_Mem_Out(35 DOWNTO 20), Ex_Mem_Out(37), Ex_Mem_Out(36), clock, address_out);
 		 
 		-- Reg MEM/WB                                -- WB signals --                           -- AluResult --           -- rtOrRdNum --
 		Register_MEM_WB: Reg_MEM_WB PORT MAP(clock, Ex_Mem_Out(39 DOWNTO 38) & readDataMem & Ex_Mem_Out(35 DOWNTO 20) & Ex_Mem_Out(3 DOWNTO 0), Mem_Wb_Out);

@@ -181,10 +181,11 @@ PACKAGE components IS
 		PORT ( 
 	  writeData : IN STD_LOGIC_VECTOR(NUM_BITS-1 DOWNTO 0);		  
 	  readData  : OUT STD_LOGIC_VECTOR(NUM_BITS-1 DOWNTO 0);
-	  address   : IN STD_LOGIC_VECTOR(NUM_BITS-1 DOWNTO 0);
+	  address   : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
 	  memWrite  : IN STD_LOGIC;
 	  memRead   : IN STD_LOGIC;
-	  clk       : IN STD_LOGIC
+	  clk       : IN STD_LOGIC;
+	  	  address_out : OUT STD_LOGIC_VECTOR(15 DOWNTO 0)
 			  );
 	END COMPONENT;
 	

@@ -15,7 +15,7 @@ BEGIN
 		IF Reset = '1' THEN
 			Q <= "0000000000000000";
 		
-		ELSIF (Clock'EVENT AND Clock='1') THEN
+		ELSIF FALLING_EDGE(Clock) THEN
 			IF Rin = '1' THEN 
 				Q <= D;
 			END IF;

@@ -60,7 +60,7 @@ BEGIN
 	buffer16: bufferTriState PORT MAP(regsDataIn(15), regsOut1(15) OR regsOut2(15), regsDataOut(15));
 	
 	
-	PROCESS(regsDataIn, reg0, reg1, reg2, reg3)
+	PROCESS(regsDataIn)
 	BEGIN
 		IF unsigned(regsDataIn(0)) < 16 THEN
 			reg0 <= regsDataIn(0)(3 DOWNTO 0);
@@ -88,11 +88,11 @@ BEGIN
 	END PROCESS;
 	
 	
-	PROCESS(clocK)
+	PROCESS(writeRegister, regWrite, writeData)
 	BEGIN
-		-- ESCRITA (só escreve na subida do clock e quando regWrite vale 1)
-		IF RISING_EDGE(clock) AND regWrite = '1' THEN			
-			CASE writeRegister IS
+	-- ESCRITA 
+	IF regWrite = '1' THEN
+		CASE writeRegister IS
 				WHEN "0000" =>
 					regsIn <= "0000000000000001";
 				
@@ -143,9 +143,11 @@ BEGIN
 					
 				WHEN OTHERS => 
 					regsIn <= (others => '0');
-					
-			END CASE;
-		END IF;
+		END CASE;
+		
+	ELSE
+			regsIn <= "0000000000000000";
+	END IF;
 	END PROCESS;
 			
 	-- LEITURA (é assincrona, portanto nao depende do clock)
