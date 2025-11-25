@@ -71,7 +71,7 @@ ARCHITECTURE behavior OF cpu IS
 	SIGNAL Id_Ex_Out: STD_LOGIC_VECTOR(83 DOWNTO 0); -- conteudo do reg ID/EX
 	
 	
-	SIGNAL aluSrc_Out: STD_LOGIC_VECTOR(15 DOWNTO 0); -- output do mux alu src
+	SIGNAL Forward_B_out: STD_LOGIC_VECTOR(15 DOWNTO 0); -- output do mux forward_B
 	SIGNAL MemtoReg_Out: STD_LOGIC_VECTOR(15 DOWNTO 0); -- output do mux MemtoReg
 	
 	SIGNAL Forward_A: STD_LOGIC_VECTOR(1 DOWNTO 0); -- sinal de controle do mux de forward A
@@ -170,7 +170,7 @@ BEGIN
 		Control_unit: Control PORT MAP(If_Id_Out(15 DOWNTO 13), ID_Flush, controlSignals, branch, jump);
 		
 		-- Hazard Detection Unit                                    rs (est 2)         reg t (estagio 2)        rt (est 3)        MemRead (est 3) 
-		HazardDetection_Unit: Hazard_Detection_Unit PORT MAP(If_Id_Out(12 DOWNTO 9), If_Id_Out(8 DOWNTO 5), Id_Ex_Out(7 DOWNTO 4), Id_Ex_Out(76), flush_hazard_detec, pcWrite, ifIdWrite);
+		HazardDetection_Unit: Hazard_Detection_Unit PORT MAP(If_Id_Out(12 DOWNTO 9), If_Id_Out(8 DOWNTO 5), Id_Ex_Out(7 DOWNTO 4), Id_Ex_Out(80), flush_hazard_detec, pcWrite, ifIdWrite);
 		
 		-- Comparator (xnor) (branch)                    
 		Comparator_Hardware: comparator PORT MAP(readData1, readData2, branchTaken);
@@ -194,14 +194,14 @@ BEGIN
 
 	-- 3° ESTÁGIO PIPELINE
 	
-		-- Mux AluSource                 -- readData2 --          -- imed ext --        -- aluSrc --
-		MUX_ALU_Src: mux2to1 PORT MAP(Id_Ex_Out(43 DOWNTO 28), Id_Ex_Out(27 DOWNTO 12), Id_Ex_Out(77), aluSrc_Out);
+		-- Mux AluSource              --forward_B_out--     -- imed ext --    -- aluSrc --   --AluSrcB--
+		MUX_ALU_Src: mux2to1 PORT MAP(Forward_B_out, Id_Ex_Out(27 DOWNTO 12), Id_Ex_Out(77), ALU_SrcB);
 		
 		-- Mux Forward_A                    readData1 (2 est)    dado do 5 est    Alu Result (4 est) 
 		MUX_Forward_A: mux3to1 PORT MAP(Id_Ex_Out(59 DOWNTO 44), MemtoReg_Out, Ex_Mem_Out(35 DOWNTO 20), Forward_A, ALU_SrcA);
 		
-		-- Mux Forward_B               dado do 2 est  dado do 5 est      alu result (4 est)
-		MUX_Forward_B: mux3to1 PORT MAP(aluSrc_Out,  MemtoReg_Out,  Ex_Mem_Out(35 DOWNTO 20), Forward_B, ALU_SrcB);
+		-- Mux Forward_B                  --- readData2 ----      alu result (4 est)
+		MUX_Forward_B: mux3to1 PORT MAP(Id_Ex_Out(43 DOWNTO 28),  MemtoReg_Out,  Ex_Mem_Out(35 DOWNTO 20), Forward_B, Forward_B_out);
 		
 		-- Mux Reg_Dst                    -- rt --                 -- rd --         -- regDst -- 
 		MUX_Reg_Dst: mux2to1_4bits PORT MAP(Id_Ex_Out(7 DOWNTO 4), Id_Ex_Out(3 DOWNTO 0), Id_Ex_Out(76), Reg_Destiny);
@@ -216,7 +216,7 @@ BEGIN
 		ULA: alu PORT MAP(ALU_SrcA, ALU_SrcB, ALU_opcode, Alu_result);
 		
 		-- Reg EX/MEM                                  -- sinais de WB --                                       
-		Register_EX_MEM: Reg_Ex_Mem PORT MAP(clock, iD_Ex_Out(83 DOWNTO 80) & Alu_result & Alu_SrcB & Reg_Destiny, Ex_Mem_Out);
+		Register_EX_MEM: Reg_Ex_Mem PORT MAP(clock, iD_Ex_Out(83 DOWNTO 80) & Alu_result & Forward_B_out & Reg_Destiny, Ex_Mem_Out);
 		
 ------------------------------
 		
