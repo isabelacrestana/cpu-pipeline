@@ -44,6 +44,7 @@ ARCHITECTURE behavior OF Control IS
 					RegDst  <= '0';  
 				
 				WHEN "001" =>  --LW
+					ID_Flush <= '0';
 					RegWrite <= '1'; -- ESCREVE NO REG_DST
 					MemtoReg <= '1'; 
 					Branch <= '0';	
@@ -54,6 +55,7 @@ ARCHITECTURE behavior OF Control IS
 					RegDst  <= '0';  -- Rt
 					
 				WHEN "010" =>  --SW
+					ID_Flush <= '0';
 					RegWrite <= '0'; 
 					MemtoReg <= '0'; -- 0 OU 1 PODE SER QUALQUER UM
 					Branch <= '0';	
@@ -64,6 +66,7 @@ ARCHITECTURE behavior OF Control IS
 					RegDst  <= '0';  -- 0 OU 1 PODE SER QUALQUER UM
 					
 				WHEN "011" =>  --R_TYPE
+					ID_Flush <= '0';
 					RegWrite <= '1'; -- ESCREVE NO REG_DST
 					MemtoReg <= '0';
 					Branch <= '0';	
@@ -74,6 +77,7 @@ ARCHITECTURE behavior OF Control IS
 					RegDst  <= '1';  -- Rd
 					
 				WHEN "100" =>  --BEQ 
+					ID_Flush <= '0';
 					RegWrite <= '0'; 
 					MemtoReg <= '1'; -- 0 OU 1 PODE SER QUALQUER UM
 					Branch <= '1';	
@@ -84,6 +88,7 @@ ARCHITECTURE behavior OF Control IS
 					RegDst  <= '1'; -- 0 OU 1 PODE SER QUALQUER UM  
 					
 				WHEN "101" =>  --JMP
+					ID_Flush <= '0';
 					Jump <= '1';
 					RegWrite <= '0'; 
 					MemtoReg <= '1'; -- COMO JA RESOLVE NO SEGUNDO ESTAGIO, TANTO FAZ OS SINAIS AQUI

@@ -10,35 +10,44 @@ ENTITY dataMemory IS
 	PORT ( 
 	  writeData : IN STD_LOGIC_VECTOR(NUM_BITS-1 DOWNTO 0);		  
 	  readData  : OUT STD_LOGIC_VECTOR(NUM_BITS-1 DOWNTO 0);
-	  address   : IN STD_LOGIC_VECTOR(NUM_BITS-1 DOWNTO 0);
+	  address   : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
 	  memWrite  : IN STD_LOGIC;
 	  memRead   : IN STD_LOGIC;
-	  clk       : IN STD_LOGIC
+	  clk       : IN STD_LOGIC;
+	  address_out : OUT STD_LOGIC_VECTOR(15 DOWNTO 0)
 	  );
 END dataMemory;
 
 ARCHITECTURE Behavioral OF dataMemory IS 
 	-- mudar tamanho da memoria depois para 2**16 - 1
 	TYPE memArray IS ARRAY(0 TO 255) OF STD_LOGIC_VECTOR(7 DOWNTO 0); 
-	SIGNAL mem            : memArray;
+	SIGNAL mem            : memArray := (
+		0 => "00000000", 1 => "00000001",
+		2 => "00000010", 3 => "00000110",
+		4 => "00000000", 5 => "00000010",
+		6 => "00000000", 7 => "00001111",
+		OTHERS => (OTHERS => '0')		
+	);
 	SIGNAL numericAddress : INTEGER;
 	 
 BEGIN
-    
+   address_out <= address;
 	numericAddress <= TO_INTEGER(UNSIGNED(address));
-	        
-	PROCESS(clk) 
-	BEGIN	
-		IF RISING_EDGE(clk) THEN 
-			IF memRead = '1' THEN
-				 readData(15 DOWNTO 8) <= mem(numericAddress);
-				 readData(7 DOWNTO 0)  <= mem(numericAddress + 1);
+	PROCESS(address, memWrite, memRead, writeData)
+	BEGIN
+		 IF RISING_EDGE(clk) THEN
 
-			 ELSIF memWrite = '1' THEN
-				 mem(numericAddress)     <= writeData(15 DOWNTO 8);
-				 mem(numericAddress + 1) <= writeData(7 DOWNTO 0);
-			END IF;
-		END IF;
-    END PROCESS;
+			  IF memWrite = '1' THEN
+					mem(numericAddress) <= writeData(15 DOWNTO 8);
+					mem(numericAddress + 1) <= writeData(7 DOWNTO 0);
+			  END IF;
+
+			  IF memRead = '1' THEN
+					readData(15 DOWNTO 8) <= mem(numericAddress);
+					readData(7 DOWNTO 0)  <= mem(numericAddress + 1);
+			  END IF;
+
+		 END IF;
+	END PROCESS;
 	 
 END Behavioral;

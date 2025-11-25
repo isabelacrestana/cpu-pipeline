@@ -20,26 +20,26 @@ ARCHITECTURE Behavioral OF instructionMemory IS
 	
 	-- instrucoes já pre-definidas
 	SIGNAL mem            : memArray := (
-		-- LW R1, 4(R0)
-		0 => "00100000",  1 => "00100100",
+		-- LW R1, 2(R2)
+		0 => "00100100",  1 => "00100010",
 
 		-- LW R2, 5(R0)
-		2 => "00100000",  3 => "00100101",
+		--2 => "00100000",  3 => "00100101",
 
-		-- ADD R3, R1, R2
-		4 => "01100110",  5 => "00100100",
+		-- ADD R3, R1, R1
+		4 => "01100010",  5 => "00100110",
 
-		-- SW R3, 6(R0)
-		6 => "01000000",  7 => "00110110",
+		-- SW R3, 0(R1)
+		6 => "01000010",  7 => "01100000",
 
 		-- BEQ R1, R2, 3
-		8 => "10000010",  9 => "01000011",
+		--8 => "10000010",  9 => "01000011",
 
 		-- JMP 64 (pulando para o endereço 64)
-		10 => "10100000", 11 => "00100000",
+		--10 => "10100000", 11 => "00100000",
 
 		-- NOP
-		12 => "00000000", 13 => "00000000",
+		--12 => "00000000", 13 => "00000000",
 
 		OTHERS => (OTHERS => '0')		
 	);
@@ -49,13 +49,11 @@ BEGIN
    
 	numericAddress <= TO_INTEGER(UNSIGNED(address));
 		         
-	PROCESS(clk) 
+	PROCESS(address) 
 	BEGIN	
-		IF RISING_EDGE(clk) THEN 
 		-- formato usado: big-endian
-			instruction(15 DOWNTO 8) <= mem(numericAddress);
-			instruction(7 DOWNTO 0)  <= mem(numericAddress+1);
-		END IF;	
+		instruction(15 DOWNTO 8) <= mem(numericAddress);
+		instruction(7 DOWNTO 0)  <= mem(numericAddress+1);
 	END PROCESS;
 	
 END Behavioral;

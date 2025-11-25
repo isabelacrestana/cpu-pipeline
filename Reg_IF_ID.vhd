@@ -19,7 +19,7 @@ ARCHITECTURE behavior OF Reg_IF_ID IS
 BEGIN
 	PROCESS(Clk, flush, wr)
 	BEGIN
-		IF RISING_EDGE(Clk) THEN
+		IF FALLING_EDGE(Clk) THEN
 			IF flush = '1' THEN
 				Q <= (OTHERS => '0');
 			
