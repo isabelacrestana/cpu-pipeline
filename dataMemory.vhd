@@ -23,7 +23,7 @@ ARCHITECTURE Behavioral OF dataMemory IS
 	TYPE memArray IS ARRAY(0 TO 255) OF STD_LOGIC_VECTOR(7 DOWNTO 0); 
 	SIGNAL mem            : memArray := (
 		0 => "00000000", 1 => "00000001",
-		2 => "00000010", 3 => "00000110",
+		2 => "00000000", 3 => "00000110",
 		4 => "00000000", 5 => "00000010",
 		6 => "00000000", 7 => "00001111",
 		OTHERS => (OTHERS => '0')		

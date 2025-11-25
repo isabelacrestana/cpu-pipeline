@@ -8,7 +8,7 @@ ENTITY cpu IS
 			HEX7, HEX6, HEX5, HEX3, HEX2, HEX1, HEX0 : OUT STD_LOGIC_VECTOR(0 TO 6);
 					  
 			KEY  : IN STD_LOGIC_VECTOR(2 DOWNTO 0);    -- posicao 0 = ENABLE  
-			LEDR : OUT STD_LOGIC_VECTOR(2 DOWNTO 0) -- 0: adiantamento forward unit, 1: harzard de load
+			LEDR : OUT STD_LOGIC_VECTOR(6 DOWNTO 0) -- 0: adiantamento forward unit, 1: harzard de load
 
 		  );
 END cpu;
@@ -118,6 +118,8 @@ BEGIN
 	
 	-- 1 caso tenha stall
 	LEDR(1) <= NOT pcWrite;
+	
+	LEDR(6) <= ifFlush;
 
 	
 	
