@@ -22,10 +22,10 @@ ARCHITECTURE Behavioral OF dataMemory IS
 	-- mudar tamanho da memoria depois para 2**16 - 1
 	TYPE memArray IS ARRAY(0 TO 255) OF STD_LOGIC_VECTOR(7 DOWNTO 0); 
 	SIGNAL mem            : memArray := (
-		0 => "00000000", 1 => "00000001",
-		2 => "00000000", 3 => "00000110",
-		4 => "00000000", 5 => "00000010",
-		6 => "00000000", 7 => "00001111",
+		0 => "00000000", 1 => "00000000",
+		2 => "00000000", 3 => "00000001",
+		4 => "00000000", 5 => "00000011",
+		6 => "00000000", 7 => "00000110",
 		OTHERS => (OTHERS => '0')		
 	);
 	SIGNAL numericAddress : INTEGER;

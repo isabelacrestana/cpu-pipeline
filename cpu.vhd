@@ -5,10 +5,11 @@ USE work.components.all;
 ENTITY cpu IS
 	PORT (Clock_50 : IN STD_LOGIC;
   
-			HEX7, HEX6, HEX5, HEX3, HEX2, HEX1, HEX0 : OUT STD_LOGIC_VECTOR(0 TO 6);
+			HEX7, HEX5, HEX3, HEX2, HEX1, HEX0 : OUT STD_LOGIC_VECTOR(0 TO 6);
 					  
 			KEY  : IN STD_LOGIC_VECTOR(2 DOWNTO 0);    -- posicao 0 = ENABLE  
-			LEDR : OUT STD_LOGIC_VECTOR(6 DOWNTO 0) -- 0: adiantamento forward unit, 1: harzard de load
+			LEDR : OUT STD_LOGIC_VECTOR(17 DOWNTO 0); -- 0: adiantamento forward unit, 1: harzard de load
+			LEDG : OUT STD_LOGIC_VECTOR(8 DOWNTO 0)
 
 		  );
 END cpu;
@@ -19,7 +20,7 @@ ARCHITECTURE behavior OF cpu IS
 	
 	-- mudanca na frequencia do clock
 	
-	CONSTANT max: INTEGER := 100000000;			-- Ciclo do clock (é ajustável)
+	CONSTANT max: INTEGER := 85000000;			-- Ciclo do clock (é ajustável)
 	CONSTANT half: INTEGER := max/2;				-- Meio Ciclo
 	SIGNAL clockticks: INTEGER RANGE 0 TO max;-- Conta cada ciclo do clock de entrada
 	SIGNAL clock: STD_LOGIC;	
@@ -94,17 +95,14 @@ ARCHITECTURE behavior OF cpu IS
 	SIGNAL address_out:  STD_LOGIC_VECTOR(15 DOWNTO 0);
 BEGIN
 
-
 	hex_pc: sevenSegs PORT MAP(pcDataOut(3 DOWNTO 0), HEX5);
 	hex_r0: sevenSegs PORT MAP(r0, HEX3); 
 	hex_r1: sevenSegs PORT MAP(r1, HEX2); 
 	hex_r2: sevenSegs PORT MAP(r2, HEX1); 
 	hex_r3: sevenSegs PORT MAP(r3, HEX0); 	
 	
-	hex_MemtoReg_Out: sevenSegs PORT MAP( ALU_SrcB(3 DOWNTO 0), HEX7);
-	hex_debug: sevenSegs PORT MAP(Ex_Mem_Out(7 DOWNTO 4), HEX6);
-
-	LEDR(2) <= clock;
+	-- clock
+	LEDG(8) <= clock;
 	
 	-- 1 caso haja adiantamento
 	PROCESS(Forward_A, Forward_B) 
@@ -119,8 +117,18 @@ BEGIN
 	-- 1 caso tenha stall
 	LEDR(1) <= NOT pcWrite;
 	
-	LEDR(6) <= ifFlush;
-
+	
+	LEDR(17 DOWNTO 15) <= If_Id_Out(15 DOWNTO 13);
+	-- sinais de controle
+	LEDR(12 DOWNTO 9) <= ControlSignals(7 DOWNTO 4);
+	LEDR(8 DOWNTO 7) <= ControlSignals(1 DOWNTO 0);
+	LEDG(6) <= branchAndBranchTaken;
+	LEDG(5) <= branch;
+	LEDG(4) <= jump;
+	LEDG(3) <= ID_Flush;
+		
+	-- Alu Op
+	hex_aluOp: sevenSegs PORT MAP("00" & ControlSignals(3 DOWNTO 2), HEX7); 	
 	
 	
 	-- 1° ESTÁGIO PIPELINE
@@ -175,8 +183,15 @@ BEGIN
 		-- Control                    -- opcode da instrucao --
 		Control_unit: Control PORT MAP(If_Id_Out(15 DOWNTO 13), ID_Flush, controlSignals, branch, jump);
 		
-		-- Hazard Detection Unit                                    rs (est 2)         reg t (estagio 2)        rt (est 3)        MemRead (est 3) 
-		HazardDetection_Unit: Hazard_Detection_Unit PORT MAP(If_Id_Out(12 DOWNTO 9), If_Id_Out(8 DOWNTO 5), Id_Ex_Out(7 DOWNTO 4), Id_Ex_Out(80), flush_hazard_detec, pcWrite, ifIdWrite);
+		-- Hazard Detection Unit                                    rs (est 2)         rt (estagio 2)        rt (est 3)        
+		HazardDetection_Unit: Hazard_Detection_Unit PORT MAP(If_Id_Out(12 DOWNTO 9), If_Id_Out(8 DOWNTO 5), Id_Ex_Out(7 DOWNTO 4), 
+		                                                      -- IdExOut_RtOrRd      ExMemOut_RtOrRd            
+																			  Reg_Destiny,        Ex_Mem_Out(3 DOWNTO 0), Branch, 
+																			  
+																			  -- MemRead      IdExOut_RegWrite  ExMemOut_RegWrite  
+																			  Id_Ex_Out(80),  Id_Ex_Out(83),     Ex_Mem_Out(39),
+																			  
+																			  flush_hazard_detec, pcWrite, ifIdWrite);
 		
 		-- Comparator (xnor) (branch)                    
 		Comparator_Hardware: comparator PORT MAP(readData1, readData2, branchTaken);

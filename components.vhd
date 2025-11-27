@@ -153,11 +153,13 @@ PACKAGE components IS
 	
 	COMPONENT Hazard_Detection_Unit
 		PORT(
-			IF_ID_Rs, IF_ID_Rt: IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-			ID_EX_Rt: IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-			ID_EX_MemRead: IN STD_LOGIC;
-			Flush: OUT STD_LOGIC;
-			PC_Write, IF_ID_Write: OUT STD_LOGIC
+			IF_ID_Rs, IF_ID_Rt              : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+			ID_EX_Rt                        : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+			ID_EX_RtOrRd, EX_MEM_RtOrRd     : IN STD_LOGIC_VECTOR(3 DOWNTO 0);  	
+			IF_ID_Branch, ID_EX_MemRead     : IN STD_LOGIC;
+			ID_EX_RegWrite, EX_MEM_RegWrite : IN STD_LOGIC;
+			Flush                           : OUT STD_lOGIC;
+			PC_Write, IF_ID_Write           : OUT STD_LOGIC
 		);
 	END COMPONENT;
 	
