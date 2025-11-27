@@ -3,12 +3,13 @@ USE ieee.std_logic_1164.all;
 USE work.components.all;
 
 ENTITY cpu IS
-	PORT (clock : IN STD_LOGIC;
+	PORT (Clock_50 : IN STD_LOGIC;
   
-			HEX3, HEX2, HEX1, HEX0 : OUT STD_LOGIC_VECTOR(0 TO 6);
-		  
-			KEY : IN STD_LOGIC_VECTOR(1 DOWNTO 0);    -- posicao 0 = ENABLE  
-			LEDR : OUT STD_LOGIC_VECTOR(1 DOWNTO 0) -- 0: adiantamento forward unit, 1: harzard de load
+			HEX7, HEX5, HEX3, HEX2, HEX1, HEX0 : OUT STD_LOGIC_VECTOR(0 TO 6);
+					  
+			KEY  : IN STD_LOGIC_VECTOR(2 DOWNTO 0);    -- posicao 0 = ENABLE  
+			LEDR : OUT STD_LOGIC_VECTOR(17 DOWNTO 0); -- 0: adiantamento forward unit, 1: harzard de load
+			LEDG : OUT STD_LOGIC_VECTOR(8 DOWNTO 0)
 
 		  );
 END cpu;
@@ -19,19 +20,18 @@ ARCHITECTURE behavior OF cpu IS
 	
 	-- mudanca na frequencia do clock
 	
-	CONSTANT max: INTEGER := 50000000;			-- Ciclo do clock (é ajustável)
+	CONSTANT max: INTEGER := 85000000;			-- Ciclo do clock (é ajustável)
 	CONSTANT half: INTEGER := max/2;				-- Meio Ciclo
 	SIGNAL clockticks: INTEGER RANGE 0 TO max;-- Conta cada ciclo do clock de entrada
-	--SIGNAL clock: STD_LOGIC;	
+	SIGNAL clock: STD_LOGIC;	
 
 	-- sinais internos	
-	
-	SIGNAL pcDataIn : STD_LOGIC_VECTOR(15 DOWNTO 0) := "0000000000000000";  -- dado que entra no PC
-	SIGNAL pcDataOut : STD_LOGIC_VECTOR(15 DOWNTO 0) := "0000000000000000"; -- dado que sai do PC
+	SIGNAL pcDataIn : STD_LOGIC_VECTOR(15 DOWNTO 0);  -- dado que entra no PC
+	SIGNAL pcDataOut : STD_LOGIC_VECTOR(15 DOWNTO 0); -- dado que sai do PC
 	SIGNAL pcWrite : STD_LOGIC := '0'; -- sinal para habilitar escrita no PC
 	
 	SIGNAL instruction : STD_LOGIC_VECTOR(15 DOWNTO 0);   -- saída da memoria de inst (depois do fetch)
-	SIGNAL pcPlus2Res : STD_LOGIC_VECTOR(15 DOWNTO 0) := "0000000000000000";    -- PC já incrementado (saída do somador)
+	SIGNAL pcPlus2Res : STD_LOGIC_VECTOR(15 DOWNTO 0);    -- PC já incrementado (saída do somador)
 	
 	SIGNAL branchTarget : STD_LOGIC_VECTOR(15 DOWNTO 0); -- endereco do salto do branch
 	SIGNAL pcSource : STD_LOGIC := '0'; -- sinal de controle do mux PC Source
@@ -60,7 +60,9 @@ ARCHITECTURE behavior OF cpu IS
 	
 	SIGNAL branchAndBranchTaken: STD_LOGIC;
 	
-	SIGNAL ID_Flush: STD_LOGIC; -- sinal de flush para gerar uma bolha 
+	SIGNAL flush_hazard_detec: STD_LOGIC; -- Sinal de flush caso haja hazard com load
+	SIGNAL ID_Flush: STD_LOGIC; -- sinal de flush para instrução NOP 
+	SIGNAL Flush: STD_LOGIC; -- sinal de flush apos o OR que entra no MUX de flush
 	SIGNAL controlSignals: STD_LOGIC_VECTOR(7 DOWNTO 0); -- Sinais de controle
 	SIGNAL signalsOut: STD_LOGIC_VECTOR(7 DOWNTO 0); -- Saida dos sinais do MUX de ID_Flush
 	
@@ -70,7 +72,7 @@ ARCHITECTURE behavior OF cpu IS
 	SIGNAL Id_Ex_Out: STD_LOGIC_VECTOR(83 DOWNTO 0); -- conteudo do reg ID/EX
 	
 	
-	SIGNAL aluSrc_Out: STD_LOGIC_VECTOR(15 DOWNTO 0); -- output do mux alu src
+	SIGNAL Forward_B_out: STD_LOGIC_VECTOR(15 DOWNTO 0); -- output do mux forward_B
 	SIGNAL MemtoReg_Out: STD_LOGIC_VECTOR(15 DOWNTO 0); -- output do mux MemtoReg
 	
 	SIGNAL Forward_A: STD_LOGIC_VECTOR(1 DOWNTO 0); -- sinal de controle do mux de forward A
@@ -90,12 +92,17 @@ ARCHITECTURE behavior OF cpu IS
 	SIGNAL readDataMem: STD_LOGIC_VECTOR(15 DOWNTO 0); -- conteudo lido da memoria de dados
 	
 	SIGNAL Mem_Wb_Out: STD_LOGIC_VECTOR(37 DOWNTO 0); -- conteudo do reg MEM/WB 
+	SIGNAL address_out:  STD_LOGIC_VECTOR(15 DOWNTO 0);
 BEGIN
 
+	hex_pc: sevenSegs PORT MAP(pcDataOut(3 DOWNTO 0), HEX5);
 	hex_r0: sevenSegs PORT MAP(r0, HEX3); 
 	hex_r1: sevenSegs PORT MAP(r1, HEX2); 
 	hex_r2: sevenSegs PORT MAP(r2, HEX1); 
 	hex_r3: sevenSegs PORT MAP(r3, HEX0); 	
+	
+	-- clock
+	LEDG(8) <= clock;
 	
 	-- 1 caso haja adiantamento
 	PROCESS(Forward_A, Forward_B) 
@@ -111,10 +118,23 @@ BEGIN
 	LEDR(1) <= NOT pcWrite;
 	
 	
+	LEDR(17 DOWNTO 15) <= If_Id_Out(15 DOWNTO 13);
+	-- sinais de controle
+	LEDR(12 DOWNTO 9) <= ControlSignals(7 DOWNTO 4);
+	LEDR(8 DOWNTO 7) <= ControlSignals(1 DOWNTO 0);
+	LEDG(6) <= branchAndBranchTaken;
+	LEDG(5) <= branch;
+	LEDG(4) <= jump;
+	LEDG(3) <= ID_Flush;
+		
+	-- Alu Op
+	hex_aluOp: sevenSegs PORT MAP("00" & ControlSignals(3 DOWNTO 2), HEX7); 	
+	
+	
 	-- 1° ESTÁGIO PIPELINE
 	
 		-- PC
-		PC: register16bits PORT MAP(pcDataIn, clock, pcWrite, pcDataOut);
+		PC: PCReg PORT MAP(pcDataIn, clock, pcWrite, NOT KEY(0), pcDataOut);
 	
 		-- Memoria de Instrucoes
 		Instuction_Memory: instructionMemory PORT MAP(pcDataOut, instruction, clock);
@@ -142,7 +162,7 @@ BEGIN
 		readRegister2 <= If_Id_Out( 8 DOWNTO 5);
 	
 		-- RegBank																																--reg write--
-		Reg_Bank: regBank PORT MAP(writeData, readData1, readData2, writeRegister, readRegister1, readRegister2, Mem_Wb_Out(37), clock, r0, r1, r2, r3);
+		Reg_Bank: regBank PORT MAP(writeData, readData1, readData2, writeRegister, readRegister1, readRegister2, Mem_Wb_Out(37), clock, NOT KEY(2), r0, r1, r2, r3);
 		
 		-- Signal Extend
 		Signal_Extend: signalExtend PORT MAP(If_Id_Out(4 DOWNTO 0), signExtend_Out);
@@ -163,8 +183,15 @@ BEGIN
 		-- Control                    -- opcode da instrucao --
 		Control_unit: Control PORT MAP(If_Id_Out(15 DOWNTO 13), ID_Flush, controlSignals, branch, jump);
 		
-		-- Hazard Detection Unit                                    rs (est 2)         reg t (estagio 2)        rt (est 3)        MemRead (est 3) 
-		HazardDetection_Unit: Hazard_Detection_Unit PORT MAP(If_Id_Out(12 DOWNTO 9), If_Id_Out(8 DOWNTO 5), Id_Ex_Out(7 DOWNTO 4), Id_Ex_Out(76), pcWrite, ifIdWrite);
+		-- Hazard Detection Unit                                    rs (est 2)         rt (estagio 2)        rt (est 3)        
+		HazardDetection_Unit: Hazard_Detection_Unit PORT MAP(If_Id_Out(12 DOWNTO 9), If_Id_Out(8 DOWNTO 5), Id_Ex_Out(7 DOWNTO 4), 
+		                                                      -- IdExOut_RtOrRd      ExMemOut_RtOrRd            
+																			  Reg_Destiny,        Ex_Mem_Out(3 DOWNTO 0), Branch, 
+																			  
+																			  -- MemRead      IdExOut_RegWrite  ExMemOut_RegWrite  
+																			  Id_Ex_Out(80),  Id_Ex_Out(83),     Ex_Mem_Out(39),
+																			  
+																			  flush_hazard_detec, pcWrite, ifIdWrite);
 		
 		-- Comparator (xnor) (branch)                    
 		Comparator_Hardware: comparator PORT MAP(readData1, readData2, branchTaken);
@@ -175,8 +202,11 @@ BEGIN
 		ifFlush  <= branchAndBranchTaken;
 		pcSource <= branchAndBranchTaken;
 		
+		-- ID_Flush OR flush_hazard_detec
+		Flush <= ID_Flush OR flush_hazard_detec;
+		
 		-- MUX ID Flush                                  -- para bublle --
-		MUX_ID_Flush: mux2to1_8bits PORT MAP(controlSignals, "00000000", ID_Flush, signalsOut);
+		MUX_ID_Flush: mux2to1_8bits PORT MAP(controlSignals, "00000000", Flush, signalsOut);
 		
 		-- Reg ID/EX                                                 -- pc+2 --                                                          -- rs --                -- rt --                 -- rd --
 		Register_ID_EX: Reg_ID_EX PORT MAP(Clock, signalsOut & If_Id_Out(31 DOWNTO 16) & readData1 & readData2 & signExtend_Out & If_Id_Out(12 DOWNTO 9) & If_Id_Out(8 DOWNTO 5) & If_Id_Out(4 DOWNTO 1), Id_Ex_Out);
@@ -185,14 +215,14 @@ BEGIN
 
 	-- 3° ESTÁGIO PIPELINE
 	
-		-- Mux AluSource                 -- readData2 --          -- imed ext --        -- aluSrc --
-		MUX_ALU_Src: mux2to1 PORT MAP(Id_Ex_Out(43 DOWNTO 28), Id_Ex_Out(27 DOWNTO 12), Id_Ex_Out(77), aluSrc_Out);
+		-- Mux AluSource              --forward_B_out--     -- imed ext --    -- aluSrc --   --AluSrcB--
+		MUX_ALU_Src: mux2to1 PORT MAP(Forward_B_out, Id_Ex_Out(27 DOWNTO 12), Id_Ex_Out(77), ALU_SrcB);
 		
 		-- Mux Forward_A                    readData1 (2 est)    dado do 5 est    Alu Result (4 est) 
 		MUX_Forward_A: mux3to1 PORT MAP(Id_Ex_Out(59 DOWNTO 44), MemtoReg_Out, Ex_Mem_Out(35 DOWNTO 20), Forward_A, ALU_SrcA);
 		
-		-- Mux Forward_B               dado do 2 est  dado do 5 est      alu result (4 est)
-		MUX_Forward_B: mux3to1 PORT MAP(aluSrc_Out,  MemtoReg_Out,  Ex_Mem_Out(35 DOWNTO 20), Forward_B, ALU_SrcB);
+		-- Mux Forward_B                  --- readData2 ----      alu result (4 est)
+		MUX_Forward_B: mux3to1 PORT MAP(Id_Ex_Out(43 DOWNTO 28),  MemtoReg_Out,  Ex_Mem_Out(35 DOWNTO 20), Forward_B, Forward_B_out);
 		
 		-- Mux Reg_Dst                    -- rt --                 -- rd --         -- regDst -- 
 		MUX_Reg_Dst: mux2to1_4bits PORT MAP(Id_Ex_Out(7 DOWNTO 4), Id_Ex_Out(3 DOWNTO 0), Id_Ex_Out(76), Reg_Destiny);
@@ -207,14 +237,14 @@ BEGIN
 		ULA: alu PORT MAP(ALU_SrcA, ALU_SrcB, ALU_opcode, Alu_result);
 		
 		-- Reg EX/MEM                                  -- sinais de WB --                                       
-		Register_EX_MEM: Reg_Ex_Mem PORT MAP(clock, iD_Ex_Out(83 DOWNTO 80) & Alu_result & Alu_SrcB & Reg_Destiny, Ex_Mem_Out);
+		Register_EX_MEM: Reg_Ex_Mem PORT MAP(clock, iD_Ex_Out(83 DOWNTO 80) & Alu_result & Forward_B_out & Reg_Destiny, Ex_Mem_Out);
 		
 ------------------------------
 		
 	-- 4° ESTÁGIO PIPELINE
 	
 		-- Data Memory                      -- Alu_B --                         -- AluResult  --        -- memWrite --   -- memRead --                 
-		Data_Memory: dataMemory PORT MAP(Ex_Mem_Out(19 DOWNTO 4), readDataMem, Ex_Mem_Out(35 DOWNTO 20), Ex_Mem_Out(37), Ex_Mem_Out(36), clock);
+		Data_Memory: dataMemory PORT MAP(Ex_Mem_Out(19 DOWNTO 4), readDataMem, Ex_Mem_Out(35 DOWNTO 20), Ex_Mem_Out(37), Ex_Mem_Out(36), clock, address_out);
 		 
 		-- Reg MEM/WB                                -- WB signals --                           -- AluResult --           -- rtOrRdNum --
 		Register_MEM_WB: Reg_MEM_WB PORT MAP(clock, Ex_Mem_Out(39 DOWNTO 38) & readDataMem & Ex_Mem_Out(35 DOWNTO 20) & Ex_Mem_Out(3 DOWNTO 0), Mem_Wb_Out);
@@ -228,20 +258,20 @@ BEGIN
 		
 		
 ----- ALTERANDO FREQUENCIA DO CLOCK --------
-	--ClockDivide: PROCESS
-	--BEGIN
-	----	WAIT UNTIL Clock_50'EVENT and Clock_50 = '1';
-	--	IF clockticks < max THEN
-	--		 clockticks <= clockticks + 1;
-	--	ELSE
-	--		 clockticks <= 0;
-	--	END IF;
-	--	IF clockticks < half THEN
-	--		 clock <= '0';
-	--	ELSE
-	--		 clock <= '1';
-	--	END IF;
- -- END PROCESS;
+	ClockDivide: PROCESS
+	BEGIN
+		WAIT UNTIL Clock_50'EVENT and Clock_50 = '1';
+		IF clockticks < max THEN
+			 clockticks <= clockticks + 1;
+		ELSE
+			 clockticks <= 0;
+		END IF;
+		IF clockticks < half THEN
+			 clock <= '0';
+		ELSE
+			 clock <= '1';
+		END IF;
+  END PROCESS;
 
 
 END behavior;

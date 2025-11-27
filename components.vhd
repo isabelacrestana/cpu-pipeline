@@ -3,11 +3,17 @@ USE ieee.std_logic_1164.all;
 
 PACKAGE components IS
 
-	COMPONENT register16bits
+	COMPONENT register16bits IS
 		PORT (D                  : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
-				Clock, Rin         : IN STD_LOGIC;
+				Clock, Rin, Reset  : IN STD_LOGIC;
 				Q                  : OUT STD_LOGIC_VECTOR(15 DOWNTO 0));
 	END COMPONENT;	
+	
+	COMPONENT PCReg
+		PORT (D                  : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
+				Clock, Rin, Reset  : IN STD_LOGIC;
+				Q                  : OUT STD_LOGIC_VECTOR(15 DOWNTO 0));
+	END COMPONENT;
 	
 	COMPONENT fullAdder 
 		PORT (cin:  IN STD_LOGIC;
@@ -147,10 +153,13 @@ PACKAGE components IS
 	
 	COMPONENT Hazard_Detection_Unit
 		PORT(
-			IF_ID_Rs, IF_ID_Rt: IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-			ID_EX_Rt: IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-			ID_EX_MemRead: IN STD_LOGIC;
-			PC_Write, IF_ID_Write: OUT STD_LOGIC
+			IF_ID_Rs, IF_ID_Rt              : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+			ID_EX_Rt                        : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+			ID_EX_RtOrRd, EX_MEM_RtOrRd     : IN STD_LOGIC_VECTOR(3 DOWNTO 0);  	
+			IF_ID_Branch, ID_EX_MemRead     : IN STD_LOGIC;
+			ID_EX_RegWrite, EX_MEM_RegWrite : IN STD_LOGIC;
+			Flush                           : OUT STD_lOGIC;
+			PC_Write, IF_ID_Write           : OUT STD_LOGIC
 		);
 	END COMPONENT;
 	
@@ -174,10 +183,11 @@ PACKAGE components IS
 		PORT ( 
 	  writeData : IN STD_LOGIC_VECTOR(NUM_BITS-1 DOWNTO 0);		  
 	  readData  : OUT STD_LOGIC_VECTOR(NUM_BITS-1 DOWNTO 0);
-	  address   : IN STD_LOGIC_VECTOR(NUM_BITS-1 DOWNTO 0);
+	  address   : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
 	  memWrite  : IN STD_LOGIC;
 	  memRead   : IN STD_LOGIC;
-	  clk       : IN STD_LOGIC
+	  clk       : IN STD_LOGIC;
+	  	  address_out : OUT STD_LOGIC_VECTOR(15 DOWNTO 0)
 			  );
 	END COMPONENT;
 	
@@ -189,12 +199,12 @@ PACKAGE components IS
 	
 	COMPONENT regBank
 		PORT ( writeData                                   : IN STD_LOGIC_VECTOR(15 DOWNTO 0);    -- dado que sera escrito
-			 readData1, readData2                           : OUT STD_LOGIC_VECTOR(15 DOWNTO 0);   -- dados lidos de rs e rt
-			 writeRegister, readRegister1, readRegister2    : IN STD_LOGIC_VECTOR(3 DOWNTO 0);     -- regWrite: sinal de escrita
-			 regWrite, clock                                : IN STD_LOGIC;
-			 reg0, reg1, reg2, reg3                         : OUT STD_LOGIC_VECTOR(3 DOWNTO 0)
-			);
-   END COMPONENT;
+				 readData1, readData2                        : OUT STD_LOGIC_VECTOR(15 DOWNTO 0);   -- dados lidos de rs e rt
+				 writeRegister, readRegister1, readRegister2 : IN STD_LOGIC_VECTOR(3 DOWNTO 0);     -- regWrite: sinal de escrita
+				 regWrite, clock, reset                      : IN STD_LOGIC;
+				 reg0, reg1, reg2, reg3                      : OUT STD_LOGIC_VECTOR(3 DOWNTO 0)
+				);
+	END COMPONENT;
 	
 	COMPONENT sevenSegs 
 		PORT (SW : IN STD_LOGIC_VECTOR(3 DOWNTO 0);

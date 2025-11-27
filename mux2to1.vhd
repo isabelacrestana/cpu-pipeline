@@ -14,9 +14,9 @@ BEGIN
 	PROCESS(s)
 	BEGIN
 		IF s = '0' THEN
-			y <= a;
+			y(15 DOWNTO 0) <= a(15 DOWNTO 0);
 		ELSE
-			y <= b;
+			y(15 DOWNTO 0) <= b(15 DOWNTO 0);
 		END IF;
 	END PROCESS;
 END behavior;

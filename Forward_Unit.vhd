@@ -28,7 +28,10 @@ ARCHITECTURE forwarding_logic OF Forward_Unit IS
 				ELSE
 					Forward_A <= "00";
 				END IF;
-				
+		END PROCESS;
+		
+		PROCESS(EX_MEM_RegWrite,MEM_WB_RegWrite,EX_MEM_Rd,MEM_WB_Rd,ID_EX_Rs,ID_EX_Rt)
+		BEGIN
 				
 				IF(EX_MEM_RegWrite = '1' AND (EX_MEM_Rd = ID_EX_Rt)) THEN --1b
 					Forward_B <= "10";
