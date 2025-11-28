@@ -186,8 +186,7 @@ PACKAGE components IS
 	  address   : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
 	  memWrite  : IN STD_LOGIC;
 	  memRead   : IN STD_LOGIC;
-	  clk       : IN STD_LOGIC;
-	  	  address_out : OUT STD_LOGIC_VECTOR(15 DOWNTO 0)
+	  clk       : IN STD_LOGIC
 			  );
 	END COMPONENT;
 	

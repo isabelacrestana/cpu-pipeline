@@ -13,8 +13,7 @@ ENTITY dataMemory IS
 	  address   : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
 	  memWrite  : IN STD_LOGIC;
 	  memRead   : IN STD_LOGIC;
-	  clk       : IN STD_LOGIC;
-	  address_out : OUT STD_LOGIC_VECTOR(15 DOWNTO 0)
+	  clk       : IN STD_LOGIC
 	  );
 END dataMemory;
 
@@ -31,9 +30,8 @@ ARCHITECTURE Behavioral OF dataMemory IS
 	SIGNAL numericAddress : INTEGER;
 	 
 BEGIN
-   address_out <= address;
 	numericAddress <= TO_INTEGER(UNSIGNED(address));
-	PROCESS(address, memWrite, memRead, writeData)
+	PROCESS(address, memWrite, memRead, writeData, clk)
 	BEGIN
 		 IF RISING_EDGE(clk) THEN
 

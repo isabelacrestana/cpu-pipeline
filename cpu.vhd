@@ -92,7 +92,6 @@ ARCHITECTURE behavior OF cpu IS
 	SIGNAL readDataMem: STD_LOGIC_VECTOR(15 DOWNTO 0); -- conteudo lido da memoria de dados
 	
 	SIGNAL Mem_Wb_Out: STD_LOGIC_VECTOR(37 DOWNTO 0); -- conteudo do reg MEM/WB 
-	SIGNAL address_out:  STD_LOGIC_VECTOR(15 DOWNTO 0);
 BEGIN
 
 	hex_pc: sevenSegs PORT MAP(pcDataOut(3 DOWNTO 0), HEX5);
@@ -244,7 +243,7 @@ BEGIN
 	-- 4° ESTÁGIO PIPELINE
 	
 		-- Data Memory                      -- Alu_B --                         -- AluResult  --        -- memWrite --   -- memRead --                 
-		Data_Memory: dataMemory PORT MAP(Ex_Mem_Out(19 DOWNTO 4), readDataMem, Ex_Mem_Out(35 DOWNTO 20), Ex_Mem_Out(37), Ex_Mem_Out(36), clock, address_out);
+		Data_Memory: dataMemory PORT MAP(Ex_Mem_Out(19 DOWNTO 4), readDataMem, Ex_Mem_Out(35 DOWNTO 20), Ex_Mem_Out(37), Ex_Mem_Out(36), clock);
 		 
 		-- Reg MEM/WB                                -- WB signals --                           -- AluResult --           -- rtOrRdNum --
 		Register_MEM_WB: Reg_MEM_WB PORT MAP(clock, Ex_Mem_Out(39 DOWNTO 38) & readDataMem & Ex_Mem_Out(35 DOWNTO 20) & Ex_Mem_Out(3 DOWNTO 0), Mem_Wb_Out);
