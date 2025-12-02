@@ -170,8 +170,7 @@ PACKAGE components IS
 	 
 		PORT( 
          address     : IN STD_LOGIC_VECTOR(NUM_BITS-1 DOWNTO 0);		  
-		   instruction : OUT STD_LOGIC_VECTOR(NUM_BITS-1 DOWNTO 0);
-         clk         : IN STD_LOGIC
+		   instruction : OUT STD_LOGIC_VECTOR(NUM_BITS-1 DOWNTO 0)
         );
 	END COMPONENT;
 	

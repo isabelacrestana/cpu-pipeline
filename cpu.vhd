@@ -136,7 +136,7 @@ BEGIN
 		PC: PCReg PORT MAP(pcDataIn, clock, pcWrite, NOT KEY(0), pcDataOut);
 	
 		-- Memoria de Instrucoes
-		Instuction_Memory: instructionMemory PORT MAP(pcDataOut, instruction, clock);
+		Instuction_Memory: instructionMemory PORT MAP(pcDataOut, instruction);
 	
 		-- PC + 2 Adder               constante 2 para entrar no somador
 		PC_Adder : adder PORT MAP(pcDataOut, "0000000000000010", pcPlus2Res);

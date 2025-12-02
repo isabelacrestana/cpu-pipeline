@@ -9,8 +9,7 @@ ENTITY instructionMemory IS
 	 
     PORT( 
          address     : IN STD_LOGIC_VECTOR(NUM_BITS-1 DOWNTO 0);		  
-		   instruction : OUT STD_LOGIC_VECTOR(NUM_BITS-1 DOWNTO 0);
-         clk         : IN STD_LOGIC
+		   instruction : OUT STD_LOGIC_VECTOR(NUM_BITS-1 DOWNTO 0)
         );
 END instructionMemory;
 
@@ -57,7 +56,7 @@ ARCHITECTURE Behavioral OF instructionMemory IS
 
 		OTHERS => (OTHERS => '0')		
 	);
-	SIGNAL numericAddress : INTEGER;
+	SIGNAL numericAddress : INTEGER := 0;
 	 
 BEGIN
    
