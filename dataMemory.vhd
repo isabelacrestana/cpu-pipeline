@@ -23,8 +23,7 @@ ARCHITECTURE Behavioral OF dataMemory IS
 	SIGNAL mem            : memArray := (
 		0 => "00000000", 1 => "00000000",
 		2 => "00000000", 3 => "00000001",
-		4 => "00000000", 5 => "00000011",
-		6 => "00000000", 7 => "00000110",
+		4 => "00000000", 5 => "00000110",
 		OTHERS => (OTHERS => '0')		
 	);
 	SIGNAL numericAddress : INTEGER;
