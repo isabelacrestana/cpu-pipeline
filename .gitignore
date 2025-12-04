@@ -1,0 +1,68 @@
+# =========================
+# Quartus Prime build files
+# =========================
+db/
+incremental_db/
+output_files/
+greybox_tmp/
+simulation/
+tmp/
+work/
+
+# =========================
+# Arquivos temporários
+# =========================
+*.bak
+*.rpt
+*.log
+*.summary
+*.chg
+*.smsg
+*.qws
+*.qar
+*.sof
+*.pof
+*.jic
+*.ekp
+*.eqn
+*.pin
+*.dpf
+*.ppf
+*.cdf
+*.jdi
+
+# =========================
+# ModelSim / Simulação
+# =========================
+vsim.wlf
+transcript
+modelsim.ini
+wave.do
+*.vho
+*.vstf
+*.vcd
+*.wlf
+
+# =========================
+# Arquivos de sistema
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Editor / IDE
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# =========================
+# Mantém apenas arquivos essenciais
+# =========================
+!*.vhd
+!*.vhdl
+!*.qsf
+!*.qpf
+!*.sdc
+!*.bdf
